@@ -1,4 +1,4 @@
-package pro.shpin.kirill.simplerendering;
+package pro.shpin.kirill.simplerendering.game;
 
 import android.app.Application;
 import android.content.Context;

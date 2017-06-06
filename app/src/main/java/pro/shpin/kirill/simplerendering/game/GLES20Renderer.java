@@ -1,4 +1,4 @@
-package pro.shpin.kirill.simplerendering;
+package pro.shpin.kirill.simplerendering.game;
 
 import static android.opengl.GLES20.*;
 
@@ -11,6 +11,9 @@ import android.view.WindowManager;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
+
+import pro.shpin.kirill.simplerendering.GameActivity;
+import pro.shpin.kirill.simplerendering.R;
 
 public class GLES20Renderer implements GLSurfaceView.Renderer{
 

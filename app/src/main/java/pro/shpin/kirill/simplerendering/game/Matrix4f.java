@@ -1,6 +1,4 @@
-package pro.shpin.kirill.simplerendering;
-
-import android.util.Log;
+package pro.shpin.kirill.simplerendering.game;
 
 /**
  * Created by wiish on 10/16/2016.

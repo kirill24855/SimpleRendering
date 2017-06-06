@@ -1,7 +1,6 @@
-package pro.shpin.kirill.simplerendering;
+package pro.shpin.kirill.simplerendering.game;
 
 import android.content.Context;
-import android.content.res.Resources;
 import android.util.Log;
 
 import java.io.BufferedReader;

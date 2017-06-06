@@ -10,8 +10,8 @@ import android.widget.Button;
 
 public class MainActivity extends AppCompatActivity {
 
-	public void goToGame() {
-		startActivity(new Intent(this, GameActivity.class));
+	public AppCompatActivity getThisReference() {
+		return this;
 	}
 
 	@Override
@@ -21,10 +21,17 @@ public class MainActivity extends AppCompatActivity {
 		Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
 		setSupportActionBar(toolbar);
 
-		Button button = (Button)findViewById(R.id.button);
-		button.setOnClickListener(new View.OnClickListener() {
+		Button gameButton = (Button)findViewById(R.id.button);
+		gameButton.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
-				goToGame();
+				startActivity(new Intent(getThisReference(), GameActivity.class));
+			}
+		});
+
+		Button aboutButton = (Button) findViewById(R.id.button2);
+		aboutButton.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View v) {
+				startActivity(new Intent(getThisReference(), AboutActivity.class));
 			}
 		});
 	}

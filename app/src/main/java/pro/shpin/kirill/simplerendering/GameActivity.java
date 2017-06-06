@@ -2,16 +2,16 @@ package pro.shpin.kirill.simplerendering;
 
 import android.app.ActivityManager;
 import android.content.Context;
-import android.content.pm.ActivityInfo;
 import android.content.pm.ConfigurationInfo;
 import android.opengl.GLSurfaceView;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+
+import pro.shpin.kirill.simplerendering.game.GLES20Renderer;
 
 public class GameActivity extends AppCompatActivity {
 
@@ -47,9 +47,7 @@ public class GameActivity extends AppCompatActivity {
 		} else {
 			return;
 		}
-
-
-
+		
 		glView.setOnTouchListener(new View.OnTouchListener() {
 			@Override
 			public boolean onTouch(View v, MotionEvent event) {

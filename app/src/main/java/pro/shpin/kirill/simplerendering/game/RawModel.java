@@ -1,4 +1,4 @@
-package pro.shpin.kirill.simplerendering;
+package pro.shpin.kirill.simplerendering.game;
 
 /**
  * Created by wiish on 10/16/2016.
