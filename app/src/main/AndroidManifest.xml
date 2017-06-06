@@ -3,6 +3,7 @@
           package="pro.shpin.kirill.simplerendering">
 
     <application
+        android:name="pro.shpin.kirill.simplerendering.GLApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"

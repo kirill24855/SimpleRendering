@@ -48,6 +48,8 @@ public class GameActivity extends AppCompatActivity {
 			return;
 		}
 
+
+
 		glView.setOnTouchListener(new View.OnTouchListener() {
 			@Override
 			public boolean onTouch(View v, MotionEvent event) {
