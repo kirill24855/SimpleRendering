@@ -10,8 +10,9 @@
     tools:showIn="@layout/activity_main">
 
     <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        xmlns:ads="http://schemas.android.com/apk/res-auto"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
         android:layout_marginBottom="8dp"
         android:layout_marginLeft="8dp"
         android:layout_marginRight="8dp"
@@ -19,36 +20,35 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp">
 
         <Button
             android:id="@+id/button2"
             android:layout_width="170dp"
             android:layout_height="130dp"
-            android:layout_column="1"
-            android:layout_marginBottom="56dp"
             android:layout_marginLeft="8dp"
             android:layout_marginRight="8dp"
-            android:layout_row="2"
-            android:layout_weight="1"
             android:text="About"
             android:textSize="24sp"
             app:layout_constraintHorizontal_bias="0.502"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
             tools:layout_editor_absoluteY="294dp"
-            android:layout_alignParentBottom="true"
+            android:layout_marginBottom="41dp"
+            android:layout_above="@+id/adView"
             android:layout_alignStart="@+id/button"/>
 
         <Button
             android:id="@+id/button"
             android:layout_width="170dp"
             android:layout_height="130dp"
-            android:layout_column="1"
+            android:layout_alignParentTop="true"
+            android:layout_centerHorizontal="true"
             android:layout_marginLeft="8dp"
             android:layout_marginRight="8dp"
-            android:layout_row="0"
-            android:layout_weight="1"
+            android:layout_marginTop="65dp"
             android:text="Game"
             android:textSize="24sp"
             app:layout_constraintBottom_toTopOf="@+id/button2"
@@ -57,10 +57,18 @@
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.034"
-            android:layout_marginTop="85dp"
-            android:layout_alignParentTop="true"
-            android:layout_centerHorizontal="true"/>
+            app:layout_constraintVertical_bias="0.034"/>
+
+        <com.google.android.gms.ads.AdView
+            android:id="@+id/adView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            android:visibility="visible"
+            ads:adSize="BANNER"
+            ads:adUnitId="@string/banner_ad_unit_id">
+        </com.google.android.gms.ads.AdView>
     </RelativeLayout>
 
 </android.support.constraint.ConstraintLayout>
