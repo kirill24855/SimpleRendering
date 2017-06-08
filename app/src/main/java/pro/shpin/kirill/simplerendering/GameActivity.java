@@ -47,13 +47,14 @@ public class GameActivity extends AppCompatActivity {
 		} else {
 			return;
 		}
-		
+
 		glView.setOnTouchListener(new View.OnTouchListener() {
 			@Override
 			public boolean onTouch(View v, MotionEvent event) {
-				if(event.getAction() == MotionEvent.ACTION_DOWN) {
+				int action = event.getAction();
+				if(action == MotionEvent.ACTION_DOWN) {
 					touchDown = true;
-				} else if (event.getAction() == MotionEvent.ACTION_UP) {
+				} else if (action == MotionEvent.ACTION_UP) {
 					touchDown = false;
 				}
 

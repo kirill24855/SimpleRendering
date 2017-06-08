@@ -5,7 +5,8 @@ package pro.shpin.kirill.simplerendering.game;
  */
 
 public class Matrix4f {
-    float[] data;
+
+    private float[] data;
 
     public Matrix4f() {
         data = new float[16];

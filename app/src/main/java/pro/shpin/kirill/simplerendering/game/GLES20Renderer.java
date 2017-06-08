@@ -26,7 +26,7 @@ public class GLES20Renderer implements GLSurfaceView.Renderer{
 	private int frames;
 	private int screenWidth;
 	private int screenHeight;
-	Matrix4f transformation;
+	private Matrix4f transformation;
 
 	private Shader shader;
 	private RawModel model;

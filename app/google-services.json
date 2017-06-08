@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "99125526100",
+    "firebase_url": "https://simplerendering-a3e3f.firebaseio.com",
+    "project_id": "simplerendering-a3e3f",
+    "storage_bucket": "simplerendering-a3e3f.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:99125526100:android:20eb5c855947fe19",
+        "android_client_info": {
+          "package_name": "pro.shpin.kirill.simplerendering"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "99125526100-148prtabf87udbai9l0m4fjpg198uu4t.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "pro.shpin.kirill.simplerendering",
+            "certificate_hash": "7dc739c43fbea7da79ebbc76b4126b166e01b2a6"
+          }
+        },
+        {
+          "client_id": "99125526100-8efh0tjgufkb783du3chmkuegd3unid5.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC2hRmupS9A_vDp9aBK6AltDYxmWkQi-x8"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "99125526100-8efh0tjgufkb783du3chmkuegd3unid5.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
