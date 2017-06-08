@@ -9,6 +9,10 @@ import android.util.Log;
 import android.view.Display;
 import android.view.WindowManager;
 
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.IntBuffer;
+
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
@@ -28,39 +32,68 @@ public class GLES20Renderer implements GLSurfaceView.Renderer{
 	private int screenHeight;
 	private Matrix4f transformation;
 
-	private Shader shader;
+	private int vertShader;
+	private int fragShader;
+	private int shaderProgram;
+
+	private int transformationLoc;
+	private int projectionLoc;
+	private int colorLoc;
+
 	private RawModel model;
 
-	public GLES20Renderer() {
-		firstDraw = true;
-		surfaceCreated = false;
-		width = -1;
-		height = -1;
-		lastTime = System.currentTimeMillis();
-		FPS = 0;
-		frames = 0;
+	private int loadShader(String source, int type) {
+		int shader;
+
+		shader = glCreateShader(type);
+
+		if (shader == 0) {
+			return 0;
+		}
+
+		glShaderSource(shader, source);
+
+		glCompileShader(shader);
+
+		IntBuffer intBuf= ByteBuffer.allocateDirect(4).order(ByteOrder.nativeOrder()).asIntBuffer();
+
+		int status;
+		glGetShaderiv(shader, GL_COMPILE_STATUS, intBuf);
+		status=intBuf.get(0);
+
+		if(status==0){
+			glGetShaderiv(shader,GL_INFO_LOG_LENGTH,intBuf);
+			status=intBuf.get(0);
+			if (status>1){
+				Log.i("Shader","Shader: " + glGetShaderInfoLog(shader));
+			}
+			glDeleteShader(shader);
+			Log.w("Shader","Shader error.");
+			return 0;
+		}
+
+		return shader;
 	}
 
-	public void onCreate(int width, int height, boolean contextLost) {
-		glClearColor(0.2f, 0.3f, 0.8f, 1f);
+	private void initShaders() {
+		vertShader = loadShader(Utils.readFromFile(R.raw.shader_vert), GL_VERTEX_SHADER);
+		fragShader = loadShader(Utils.readFromFile(R.raw.shader_frag), GL_FRAGMENT_SHADER);
 
-		float[] tri = {
-				100f,  100f, 0.0f,
-				-100f,  100f, 0.0f,
-				100f, -100f, 0.0f,
-				-100f, -100f, 0.0f
-		};
+		shaderProgram  = glCreateProgram();
 
-		float[][] vertData = {tri};
+		glAttachShader(shaderProgram, vertShader);
+		glAttachShader(shaderProgram, fragShader);
 
-		int[] indicies = {0, 1, 2, 2, 1, 3};
-		int[] size = {3};
-		String[] attribs = {"position"};
-		String[] uniforms = {"color", "projection", "transformation"};
+		glBindAttribLocation(shaderProgram, 0, "position");
 
-		shader = new BasicShader(R.raw.shader_vert, R.raw.shader_frag, attribs, uniforms);
-		model = new RawModel(tri, size, indicies);
+		glLinkProgram(shaderProgram);
 
+		colorLoc = glGetUniformLocation(shaderProgram, "color");
+		projectionLoc = glGetUniformLocation(shaderProgram, "projection");
+		transformationLoc = glGetUniformLocation(shaderProgram, "transformation");
+	}
+
+	private void initProjection () {
 		WindowManager wm = (WindowManager) GLApplication.context.getSystemService(Context.WINDOW_SERVICE);
 		Display display = wm.getDefaultDisplay();
 		Point sz = new Point();
@@ -86,10 +119,46 @@ public class GLES20Renderer implements GLSurfaceView.Renderer{
 		ortho.set(2, 2, -2/(f- n));
 		ortho.set(2, 3, -(f + n)/(f - n));
 
-		shader.bind();
-		shader.setUniformMat4("projection", ortho);
-		shader.setUniformMat4("transformation", new Matrix4f());
-		Shader.unbind();
+		glUseProgram(shaderProgram);
+
+		glUniformMatrix4fv(projectionLoc, 1, false, ortho.getData(), 0);
+
+		glUseProgram(0);
+	}
+
+	public GLES20Renderer() {
+		firstDraw = true;
+		surfaceCreated = false;
+		width = -1;
+		height = -1;
+		lastTime = System.currentTimeMillis();
+		FPS = 0;
+		frames = 0;
+		vertShader = 0;
+		fragShader = 0;
+		shaderProgram = 0;
+	}
+
+	public void onCreate(int width, int height, boolean contextLost) {
+		glClearColor(0.2f, 0.3f, 0.8f, 1f);
+
+		float[] tri = {
+				100f,  100f, 0.0f,
+				-100f,  100f, 0.0f,
+				100f, -100f, 0.0f,
+				-100f, -100f, 0.0f
+		};
+
+		float[][] vertData = {tri};
+
+		int[] indicies = {0, 1, 2, 2, 1, 3};
+		int[] size = {3};
+
+		model = new RawModel(tri, size, indicies);
+
+		initShaders();
+
+		initProjection();
 	}
 
 	@Override
@@ -133,7 +202,7 @@ public class GLES20Renderer implements GLSurfaceView.Renderer{
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		model.bind();
-		shader.bind();
+		glUseProgram(shaderProgram);
 
 		float time = (float)((System.currentTimeMillis() % 1000000) / 1000.0);
 		float ctime = (float)Math.cos(time);
@@ -144,9 +213,10 @@ public class GLES20Renderer implements GLSurfaceView.Renderer{
 		transformation.move(GameActivity.touchX, screenHeight - GameActivity.touchY, 0);
 		transformation.rotateZ(time);
 
-		shader.setUniformMat4("transformation", transformation);
+		glUniformMatrix4fv(transformationLoc, 1, false, transformation.getData(), 0);
 
-		shader.setUniformVec3("color", ctime*ctime, stime*stime, stime*ctime + 0.5f);
+		glUniform3f(colorLoc, ctime*ctime, stime*stime, stime*ctime + 0.5f);
+
 		glDrawElements(GL_TRIANGLES, model.getIndexCount(), GL_UNSIGNED_INT, 0);
 
 		int error;
@@ -154,7 +224,7 @@ public class GLES20Renderer implements GLSurfaceView.Renderer{
 			Log.i("Info", "GLError: " + error);
 		}
 
-		Shader.unbind();
+		glUseProgram(0);
 		model.unbind();
 	}
 }
