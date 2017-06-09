@@ -12,14 +12,21 @@ import android.view.Window;
 import android.view.WindowManager;
 
 import pro.shpin.kirill.simplerendering.game.GLES20Renderer;
+import pro.shpin.kirill.simplerendering.game.Matrix3f;
 
 public class GameActivity extends AppCompatActivity {
 
 	private GLSurfaceView glView;
 
-	public static float touchX = 0;
-	public static float touchY = 0;
-	public static boolean touchDown = false;
+	public static float originX = 0;
+	public static float originY = 0;
+	public static boolean originDown = false;
+
+	public static float pinX = 0;
+	public static float pinY = 0;
+	public static boolean pinDown = false;
+
+	public static Matrix3f transform = new Matrix3f();
 
 	private boolean hasGLES20() {
 		ActivityManager am = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
@@ -51,15 +58,23 @@ public class GameActivity extends AppCompatActivity {
 		glView.setOnTouchListener(new View.OnTouchListener() {
 			@Override
 			public boolean onTouch(View v, MotionEvent event) {
+				int index = event.getActionIndex();
+
 				int action = event.getAction();
-				if(action == MotionEvent.ACTION_DOWN) {
-					touchDown = true;
-				} else if (action == MotionEvent.ACTION_UP) {
-					touchDown = false;
+
+				if(index == 0) {
+					originX = (((((event.getX()/GLES20Renderer.width) - 0.5f) * 2) * GLES20Renderer.aspectX) + 1)/2.0f;
+					originY = (((((event.getY()/GLES20Renderer.height) - 0.5f) * 2) * GLES20Renderer.aspectY) + 1)/2.0f;
+					originY = 1 - originY;
+
+					if(action == MotionEvent.ACTION_DOWN) {
+						originDown = true;
+					} else if (action == MotionEvent.ACTION_UP) {
+						originDown = false;
+					}
 				}
 
-				touchX = event.getX();
-				touchY = event.getY();
+
 
 				return true;
 			}

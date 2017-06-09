@@ -18,16 +18,17 @@ import pro.shpin.kirill.simplerendering.R;
 
 public class GLES20Renderer implements GLSurfaceView.Renderer{
 
+	public static float width;
+	public static float height;
+	public static float aspectX;
+	public static float aspectY;
+
 	private boolean firstDraw;
 	private boolean surfaceCreated;
-	private float width;
-	private float height;
+
 	private long lastTime;
 	private int FPS;
 	private int frames;
-
-	private float aspectX;
-	private float aspectY;
 
 	private int vbo;
 	private int ibo;
@@ -37,6 +38,8 @@ public class GLES20Renderer implements GLSurfaceView.Renderer{
 	private int shaderProgram;
 
 	private int aspectLoc;
+
+	private int transformLoc;
 
 	private int loadShader(String source, int type) {
 		int shader;
@@ -119,6 +122,7 @@ public class GLES20Renderer implements GLSurfaceView.Renderer{
 		glLinkProgram(shaderProgram);
 
 		aspectLoc = glGetUniformLocation(shaderProgram, "aspect");
+		transformLoc = glGetUniformLocation(shaderProgram, "transform");
 	}
 
 	public GLES20Renderer() {
@@ -202,6 +206,14 @@ public class GLES20Renderer implements GLSurfaceView.Renderer{
 		glUseProgram(shaderProgram);
 
 		glUniform2f(aspectLoc, aspectX, aspectY);
+
+		if(GameActivity.originDown) {
+			GameActivity.transform.move(GameActivity.originX, GameActivity.originY);
+			GameActivity.transform.rotate(0.01f);
+			GameActivity.transform.move(-GameActivity.originX, -GameActivity.originY);
+		}
+
+		glUniformMatrix3fv(transformLoc, 1, false, GameActivity.transform.getData(), 0);
 
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 

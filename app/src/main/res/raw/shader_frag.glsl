@@ -2,8 +2,10 @@ precision mediump float;
 
 varying vec2 uv;
 
+uniform mat3 transform;
+
 void main() {
-	vec2 clr = (uv + 1.0) / 2.0;
+	vec3 clr = transform * vec3((uv.xy + 1.0) / 2.0, 1.0);
 
 	float blue = 0.0;
 
