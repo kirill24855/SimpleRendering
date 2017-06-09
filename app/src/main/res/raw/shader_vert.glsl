@@ -1,8 +1,10 @@
-attribute vec4 position;
+attribute vec2 position;
 
-uniform mat4 projection;
-uniform mat4 transformation;
+varying vec2 uv;
+
+uniform vec2 aspect;
 
 void main() {
-	gl_Position = projection * transformation * position;
+	gl_Position = vec4(position.xy, 0.0, 1.0);
+	uv = vec2(position.x*aspect.x, position.y*aspect.y);
 }

@@ -2,15 +2,12 @@ package pro.shpin.kirill.simplerendering.game;
 
 import static android.opengl.GLES20.*;
 
-import android.content.Context;
-import android.graphics.Point;
 import android.opengl.GLSurfaceView;
 import android.util.Log;
-import android.view.Display;
-import android.view.WindowManager;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
 import javax.microedition.khronos.egl.EGLConfig;
@@ -23,24 +20,23 @@ public class GLES20Renderer implements GLSurfaceView.Renderer{
 
 	private boolean firstDraw;
 	private boolean surfaceCreated;
-	private int width;
-	private int height;
+	private float width;
+	private float height;
 	private long lastTime;
 	private int FPS;
 	private int frames;
-	private int screenWidth;
-	private int screenHeight;
-	private Matrix4f transformation;
+
+	private float aspectX;
+	private float aspectY;
+
+	private int vbo;
+	private int ibo;
 
 	private int vertShader;
 	private int fragShader;
 	private int shaderProgram;
 
-	private int transformationLoc;
-	private int projectionLoc;
-	private int colorLoc;
-
-	private RawModel model;
+	private int aspectLoc;
 
 	private int loadShader(String source, int type) {
 		int shader;
@@ -75,6 +71,40 @@ public class GLES20Renderer implements GLSurfaceView.Renderer{
 		return shader;
 	}
 
+	private void initModel() {
+		float[] tri = {
+				 1,  1,
+				-1,  1,
+				 1, -1,
+				-1, -1
+		};
+
+		int[] indicies = {0, 1, 2, 2, 1, 3};
+
+		FloatBuffer buffer = ByteBuffer.allocateDirect(tri.length * 4).order(ByteOrder.nativeOrder()).asFloatBuffer();
+		buffer.put(tri);
+		buffer.position(0);
+
+		IntBuffer intBuf = ByteBuffer.allocateDirect(4).order(ByteOrder.nativeOrder()).asIntBuffer();
+
+		glGenBuffers(1, intBuf);
+		vbo = intBuf.get(0);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo);
+		glBufferData(GL_ARRAY_BUFFER, buffer.capacity()* 4, buffer, GL_STATIC_DRAW);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+		IntBuffer indexBuffer = ByteBuffer.allocateDirect(indicies.length * 4).order(ByteOrder.nativeOrder()).asIntBuffer();
+		indexBuffer.put(indicies);
+		indexBuffer.position(0);
+
+		glGenBuffers(1, intBuf);
+		ibo = intBuf.get(0);
+
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexBuffer.capacity() * 4, indexBuffer, GL_STATIC_DRAW);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	}
+
 	private void initShaders() {
 		vertShader = loadShader(Utils.readFromFile(R.raw.shader_vert), GL_VERTEX_SHADER);
 		fragShader = loadShader(Utils.readFromFile(R.raw.shader_frag), GL_FRAGMENT_SHADER);
@@ -88,42 +118,7 @@ public class GLES20Renderer implements GLSurfaceView.Renderer{
 
 		glLinkProgram(shaderProgram);
 
-		colorLoc = glGetUniformLocation(shaderProgram, "color");
-		projectionLoc = glGetUniformLocation(shaderProgram, "projection");
-		transformationLoc = glGetUniformLocation(shaderProgram, "transformation");
-	}
-
-	private void initProjection () {
-		WindowManager wm = (WindowManager) GLApplication.context.getSystemService(Context.WINDOW_SERVICE);
-		Display display = wm.getDefaultDisplay();
-		Point sz = new Point();
-		display.getSize(sz);
-		screenWidth = sz.x;
-		screenHeight = sz.y;
-
-		float r = screenWidth;
-		float l = 0;
-		float t = screenHeight;
-		float b = 0;
-		float f = 10;
-		float n = -10;
-
-		Matrix4f ortho = new Matrix4f();
-
-		ortho.set(0, 0, 2/(r-l));
-		ortho.set(0, 3, -(r + l)/(r - l));
-
-		ortho.set(1, 1, 2/(t- b));
-		ortho.set(1, 3, -(t + b)/(t - b));
-
-		ortho.set(2, 2, -2/(f- n));
-		ortho.set(2, 3, -(f + n)/(f - n));
-
-		glUseProgram(shaderProgram);
-
-		glUniformMatrix4fv(projectionLoc, 1, false, ortho.getData(), 0);
-
-		glUseProgram(0);
+		aspectLoc = glGetUniformLocation(shaderProgram, "aspect");
 	}
 
 	public GLES20Renderer() {
@@ -139,26 +134,12 @@ public class GLES20Renderer implements GLSurfaceView.Renderer{
 		shaderProgram = 0;
 	}
 
-	public void onCreate(int width, int height, boolean contextLost) {
+	public void initGL() {
 		glClearColor(0.2f, 0.3f, 0.8f, 1f);
 
-		float[] tri = {
-				100f,  100f, 0.0f,
-				-100f,  100f, 0.0f,
-				100f, -100f, 0.0f,
-				-100f, -100f, 0.0f
-		};
-
-		float[][] vertData = {tri};
-
-		int[] indicies = {0, 1, 2, 2, 1, 3};
-		int[] size = {3};
-
-		model = new RawModel(tri, size, indicies);
+		initModel();
 
 		initShaders();
-
-		initProjection();
 	}
 
 	@Override
@@ -166,6 +147,8 @@ public class GLES20Renderer implements GLSurfaceView.Renderer{
 		surfaceCreated = true;
 		width = -1;
 		height = -1;
+
+		initGL();
 	}
 
 	@Override
@@ -177,7 +160,16 @@ public class GLES20Renderer implements GLSurfaceView.Renderer{
 		width = w;
 		height = h;
 
-		onCreate(width, height, surfaceCreated);
+		float aspect = height/width;
+
+		if(aspect >= 1) {
+			aspectX = 1;
+			aspectY = aspect;
+		} else {
+			aspectX = 1.0f/aspect;
+			aspectY = 1;
+		}
+
 		surfaceCreated = false;
 	}
 
@@ -201,23 +193,17 @@ public class GLES20Renderer implements GLSurfaceView.Renderer{
 	public void onDrawFrame(boolean firstDraw) {
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		model.bind();
+		glBindBuffer(GL_ARRAY_BUFFER, vbo);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(0, 2, GL_FLOAT, false, 2 * 4, 0);
+
 		glUseProgram(shaderProgram);
 
-		float time = (float)((System.currentTimeMillis() % 1000000) / 1000.0);
-		float ctime = (float)Math.cos(time);
-		float stime = (float)Math.sin(time);
+		glUniform2f(aspectLoc, aspectX, aspectY);
 
-		transformation = new Matrix4f();
-
-		transformation.move(GameActivity.touchX, screenHeight - GameActivity.touchY, 0);
-		transformation.rotateZ(time);
-
-		glUniformMatrix4fv(transformationLoc, 1, false, transformation.getData(), 0);
-
-		glUniform3f(colorLoc, ctime*ctime, stime*stime, stime*ctime + 0.5f);
-
-		glDrawElements(GL_TRIANGLES, model.getIndexCount(), GL_UNSIGNED_INT, 0);
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
 		int error;
 		while((error = glGetError()) != GL_NO_ERROR) {
@@ -225,6 +211,10 @@ public class GLES20Renderer implements GLSurfaceView.Renderer{
 		}
 
 		glUseProgram(0);
-		model.unbind();
+
+		glDisableVertexAttribArray(0);
+
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	}
 }

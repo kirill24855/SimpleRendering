@@ -5,6 +5,7 @@ import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 
@@ -35,6 +36,7 @@ public class MainActivity extends AppCompatActivity {
 											.addTestDevice("223D09564A4F391D6865A10891FE0A7D")// TODO Remove before posting app
 											.addTestDevice("CCC5236CC2AD761D21F14E75347D7A01")
 											.build();
+
 		adView.loadAd(adRequest);
 
 		this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
