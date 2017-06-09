@@ -34,7 +34,7 @@ public class Matrix3f {
 		temp.set(1, 0, (float)Math.sin(angle));
 		temp.set(1, 1, (float)Math.cos(angle));
 
-		data = mult(this, temp).getData();
+		data = mult(temp, this).getData();
 	}
 
 	public static Matrix3f mult(Matrix3f m1, Matrix3f m2) {

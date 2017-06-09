@@ -207,13 +207,7 @@ public class GLES20Renderer implements GLSurfaceView.Renderer{
 
 		glUniform2f(aspectLoc, aspectX, aspectY);
 
-		if(GameActivity.originDown) {
-			GameActivity.transform.move(GameActivity.originX, GameActivity.originY);
-			GameActivity.transform.rotate(0.01f);
-			GameActivity.transform.move(-GameActivity.originX, -GameActivity.originY);
-		}
-
-		glUniformMatrix3fv(transformLoc, 1, false, GameActivity.transform.getData(), 0);
+		glUniformMatrix3fv(transformLoc, 1, false, GameView.transform.getData(), 0);
 
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
