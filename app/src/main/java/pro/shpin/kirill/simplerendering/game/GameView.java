@@ -6,6 +6,8 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 
+import java.util.concurrent.Semaphore;
+
 /**
  * Created by wiish on 6/9/2017.
  */
@@ -31,6 +33,7 @@ public class GameView extends GLSurfaceView{
 	public static float offY = 0;
 	public static float angle = 0;
 
+	public static Semaphore semaphore = new Semaphore(1);
 	public static Matrix3f transform = new Matrix3f();
 
 	public ScaleGestureDetector scaleDetector;
@@ -39,10 +42,27 @@ public class GameView extends GLSurfaceView{
 		@Override
 		public boolean onScale(ScaleGestureDetector detector) {
 
-			float cx = detector.getFocusX();
-			float cy = detector.getFocusY();
+			float cx = (((((detector.getFocusX()/GLES20Renderer.width) - 0.5f) * 2) * GLES20Renderer.aspectX) + 1)/2.0f;
+			float cy = (((((detector.getFocusY()/GLES20Renderer.height) - 0.5f) * 2) * GLES20Renderer.aspectY) + 1)/2.0f;
+			cy = 1-cy;
 
-			transform.scale(1.0f/detector.getScaleFactor());
+			Vector3f temp = new Vector3f(cx, cy);
+			Vector3f tempT = transform.mult(temp);
+
+			float sc = 1.0f/detector.getScaleFactor();
+
+			try {
+				semaphore.acquire();
+
+				transform.move(-tempT.x, -tempT.y);
+				transform.scale(sc);
+				transform.move(tempT.x, tempT.y);
+
+				semaphore.release();
+
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
 
 			return true;
 		}
@@ -139,10 +159,22 @@ public class GameView extends GLSurfaceView{
 			float tdx = (dx/GLES20Renderer.width) * GLES20Renderer.aspectX;
 			float tdy = (dy/GLES20Renderer.height) * GLES20Renderer.aspectY;
 
+			Vector3f temp = new Vector3f(-tdx, tdy);
+			temp.z = 0;
+			Vector3f tempT = transform.mult(temp);
+
 			offX -= tdx;
 			offY += tdy;
 
-			transform.move(-tdx, tdy);
+			try {
+				semaphore.acquire();
+
+				transform.move(tempT.x, tempT.y);
+
+				semaphore.release();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
 
 			originDX = event.getX(0);
 			originDY = event.getY(0);

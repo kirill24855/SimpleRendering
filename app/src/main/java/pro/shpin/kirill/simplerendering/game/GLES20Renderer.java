@@ -207,7 +207,15 @@ public class GLES20Renderer implements GLSurfaceView.Renderer{
 
 		glUniform2f(aspectLoc, aspectX, aspectY);
 
-		glUniformMatrix3fv(transformLoc, 1, false, GameView.transform.getData(), 0);
+		try {
+			GameView.semaphore.acquire();
+
+			glUniformMatrix3fv(transformLoc, 1, false, GameView.transform.getData(), 0);
+
+			GameView.semaphore.release();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
