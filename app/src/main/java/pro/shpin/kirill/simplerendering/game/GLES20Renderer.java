@@ -38,8 +38,12 @@ public class GLES20Renderer implements GLSurfaceView.Renderer{
 	private int shaderProgram;
 
 	private int aspectLoc;
-
 	private int transformLoc;
+	private int cLoc;
+	private int maxIterationLoc;
+	private int colorSchemeLoc;
+	private int colorInsideLoc;
+	private int colorOutsideLoc;
 
 	private int loadShader(String source, int type) {
 		int shader;
@@ -123,6 +127,22 @@ public class GLES20Renderer implements GLSurfaceView.Renderer{
 
 		aspectLoc = glGetUniformLocation(shaderProgram, "aspect");
 		transformLoc = glGetUniformLocation(shaderProgram, "transform");
+
+		cLoc = glGetUniformLocation(shaderProgram, "c");
+		maxIterationLoc = glGetUniformLocation(shaderProgram, "maxIteration");
+		colorSchemeLoc = glGetUniformLocation(shaderProgram, "colorScheme");
+		colorInsideLoc = glGetUniformLocation(shaderProgram, "colorInside");
+		colorOutsideLoc = glGetUniformLocation(shaderProgram, "colorOutside");
+
+		glUseProgram(shaderProgram);
+
+		glUniform2f(cLoc, -0.835f, 0.2321f);
+		glUniform1i(maxIterationLoc, 50);
+		glUniform1i(colorSchemeLoc, 2);
+		glUniform3f(colorInsideLoc, 0, 0, 0);
+		glUniform3f(colorOutsideLoc, 1, 0, 1);
+
+		glUseProgram(0);
 	}
 
 	public GLES20Renderer() {
