@@ -137,10 +137,10 @@ public class GLES20Renderer implements GLSurfaceView.Renderer{
 		glUseProgram(shaderProgram);
 
 		glUniform2f(cLoc, -0.835f, 0.2321f);
-		glUniform1i(maxIterationLoc, 50);
+		glUniform1i(maxIterationLoc, 100);
 		glUniform1i(colorSchemeLoc, 2);
 		glUniform3f(colorInsideLoc, 0, 0, 0);
-		glUniform3f(colorOutsideLoc, 1, 0, 1);
+		glUniform3f(colorOutsideLoc, 1, 1, 1);
 
 		glUseProgram(0);
 	}

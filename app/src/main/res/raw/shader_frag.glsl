@@ -1,4 +1,4 @@
-precision mediump float;
+precision highp float;
 
 varying vec2 uv;
 
@@ -8,8 +8,7 @@ uniform int colorScheme;
 uniform vec3 colorInside;
 uniform vec3 colorOutside;
 
-float hue2rgb(float p, float q, float h)
-{
+float hue2rgb(float p, float q, float h) {
     if (h < 0.0) h += 1.0;
     if (h > 1.0 ) h -= 1.0;
     if (6.0 * h < 1.0) return p + ((q - p) * 6.0 * h);
@@ -18,8 +17,7 @@ float hue2rgb(float p, float q, float h)
     return p;
 }
 
-vec4 HSVtoRGB(float hue, float saturation, float brightness)
-{
+vec4 HSVtoRGB(float hue, float saturation, float brightness) {
     float h = hue * 6.0;
     float f = hue * 6.0 - h;
     float p = brightness * (1.0 - saturation);
@@ -59,8 +57,7 @@ vec4 HSVtoRGB(float hue, float saturation, float brightness)
     }
 }
 
-vec4 HSLtoRGB(float hue, float saturation, float luminosity)
-{
+vec4 HSLtoRGB(float hue, float saturation, float luminosity) {
     hue = mod(hue, 6.0);
 
     float q = 0.0;
@@ -85,13 +82,8 @@ vec4 HSLtoRGB(float hue, float saturation, float luminosity)
     return vec4(finalColor, 1.0);
 }
 
-vec4 handleColors(int curIteration, int maxIteration, float zAbsSquared, int done)
-{
-    if (done == 1) return vec4(colorInside, 1.0);
-
+vec4 handleColors(int curIteration, int maxIteration, float zAbsSquared) {
     float stepValue = float(curIteration);
-    //if (smoothColor) stepValue += 1 - log(log(zAbsSquared)) / log(2);
-    //if (smoothColor) stepValue -= log(log(sqrt(zAbsSquared)) / log2)/log2;
 
     float colorFactor = stepValue / float(maxIteration);
     if (colorFactor < 0.0) return vec4(colorInside, 1.0);
@@ -99,11 +91,6 @@ vec4 handleColors(int curIteration, int maxIteration, float zAbsSquared, int don
     if (colorScheme == 2) return HSLtoRGB(stepValue*0.015, 1.0, colorFactor);
     else if (colorScheme == 1) return HSVtoRGB(stepValue*0.015, 1.0, colorFactor/(colorFactor+0.1));
     else return vec4(colorFactor*colorOutside, 1.0);
-}
-
-vec2 toFractalCoords(vec2 vector)
-{
-    return vector * 4.0 - 2.0;
 }
 
 void main() {
@@ -115,21 +102,30 @@ void main() {
 
 	//gl_FragColor = vec4(uv.xy, blue, 1.0);
 
-	int assigned = 0;
+	vec2 z = vec2(0.0, 0.0);
+	vec2 tz = vec2(0.0, 0.0);
+	float x2 = 0.0;
+	float y2 = 0.0;
 
-	vec2 z = toFractalCoords(uv);
+	int iteration = -1;
 
 	for (int i = 0; i < maxIteration; i++) {
-		float x2 = z.x*z.x;
-		float y2 = z.y*z.y;
-		z = vec2(x2 - y2, 2.0*z.x*z.y) + c;
+		x2 = tz.x*tz.x;
+		y2 = tz.y*tz.y;
+		z.x = x2 - y2 + uv.x;
+		z.y = 2.0*tz.x*tz.y + uv.y;
 
-		float zAbsSquared = x2 + y2;
-		if (zAbsSquared > 4.0) {
-			gl_FragColor = handleColors(i, maxIteration, zAbsSquared, 0);
-			assigned = 1;
+		tz.x = z.x;
+		tz.y = z.y;
+
+		if(x2 + y2 > 4.0) {
+			iteration = i;
 		}
 	}
 
-	if (assigned != 1) gl_FragColor = vec4(handleColors(0, 0, 0.0, 1));
+	if (iteration == -1) {
+		gl_FragColor = vec4(colorInside, 1.0);
+	} else {
+		gl_FragColor = handleColors(iteration, maxIteration, x2 + y2);
+	}
 }
