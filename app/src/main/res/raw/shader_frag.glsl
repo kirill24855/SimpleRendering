@@ -109,41 +109,9 @@ void main() {
 
 	int iteration = -1;
 
-	for (int i = 0; i < maxIteration; i++) {
+	for (int i = 0; i < maxIteration*5; i += 5) {
 		x2 = tz.x*tz.x;
         y2 = tz.y*tz.y;
-		z.x = x2 - y2 + uv.x;//*16.0;
-		z.y = 2.0*tz.x*tz.y + uv.y;//*16.0;
-
-		tz.x = z.x;
-		tz.y = z.y;
-
-		x2 = tz.x*tz.x;
-        y2 = tz.y*tz.y;
-        z.x = x2 - y2 + uv.x;
-        z.y = 2.0*tz.x*tz.y + uv.y;
-
-        tz.x = z.x;
-        tz.y = z.y;
-
-        x2 = tz.x*tz.x;
-		y2 = tz.y*tz.y;
-		z.x = x2 - y2 + uv.x;
-		z.y = 2.0*tz.x*tz.y + uv.y;
-
-		tz.x = z.x;
-		tz.y = z.y;
-
-		x2 = tz.x*tz.x;
-		y2 = tz.y*tz.y;
-		z.x = x2 - y2 + uv.x;
-		z.y = 2.0*tz.x*tz.y + uv.y;
-
-		tz.x = z.x;
-		tz.y = z.y;
-
-		x2 = tz.x*tz.x;
-		y2 = tz.y*tz.y;
 		z.x = x2 - y2 + uv.x;
 		z.y = 2.0*tz.x*tz.y + uv.y;
 
@@ -154,11 +122,63 @@ void main() {
 			iteration = i;
 			break;
 		}
+
+		x2 = tz.x*tz.x;
+        y2 = tz.y*tz.y;
+        z.x = x2 - y2 + uv.x;
+        z.y = 2.0*tz.x*tz.y + uv.y;
+
+        tz.x = z.x;
+        tz.y = z.y;
+
+		if(x2 + y2 > 4.0) {
+			iteration = i+1;
+			break;
+		}
+
+        x2 = tz.x*tz.x;
+		y2 = tz.y*tz.y;
+		z.x = x2 - y2 + uv.x;
+		z.y = 2.0*tz.x*tz.y + uv.y;
+
+		tz.x = z.x;
+		tz.y = z.y;
+
+		if(x2 + y2 > 4.0) {
+			iteration = i+2;
+			break;
+		}
+
+		x2 = tz.x*tz.x;
+		y2 = tz.y*tz.y;
+		z.x = x2 - y2 + uv.x;
+		z.y = 2.0*tz.x*tz.y + uv.y;
+
+		tz.x = z.x;
+		tz.y = z.y;
+
+		if(x2 + y2 > 4.0) {
+			iteration = i+3;
+			break;
+		}
+
+		x2 = tz.x*tz.x;
+		y2 = tz.y*tz.y;
+		z.x = x2 - y2 + uv.x;
+		z.y = 2.0*tz.x*tz.y + uv.y;
+
+		tz.x = z.x;
+		tz.y = z.y;
+
+		if(x2 + y2 > 4.0) {
+			iteration = i+4;
+			break;
+		}
 	}
 
 	if (iteration == -1) {
 		gl_FragColor = vec4(colorInside, 1.0);
 	} else {
-		gl_FragColor = handleColors(iteration*5, maxIteration*5, x2 + y2);
+		gl_FragColor = handleColors(iteration, maxIteration*5, x2 + y2);
 	}
 }
