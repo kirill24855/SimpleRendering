@@ -102,14 +102,46 @@ void main() {
 
 	//gl_FragColor = vec4(uv.xy, blue, 1.0);
 
-	vec2 z = vec2(0.0, 0.0);
-	vec2 tz = vec2(0.0, 0.0);
+	vec2 z = c;
+	vec2 tz = vec2(z.x, z.y);
 	float x2 = 0.0;
 	float y2 = 0.0;
 
 	int iteration = -1;
 
 	for (int i = 0; i < maxIteration; i++) {
+		x2 = tz.x*tz.x;
+        y2 = tz.y*tz.y;
+		z.x = x2 - y2 + uv.x;//*16.0;
+		z.y = 2.0*tz.x*tz.y + uv.y;//*16.0;
+
+		tz.x = z.x;
+		tz.y = z.y;
+
+		x2 = tz.x*tz.x;
+        y2 = tz.y*tz.y;
+        z.x = x2 - y2 + uv.x;
+        z.y = 2.0*tz.x*tz.y + uv.y;
+
+        tz.x = z.x;
+        tz.y = z.y;
+
+        x2 = tz.x*tz.x;
+		y2 = tz.y*tz.y;
+		z.x = x2 - y2 + uv.x;
+		z.y = 2.0*tz.x*tz.y + uv.y;
+
+		tz.x = z.x;
+		tz.y = z.y;
+
+		x2 = tz.x*tz.x;
+		y2 = tz.y*tz.y;
+		z.x = x2 - y2 + uv.x;
+		z.y = 2.0*tz.x*tz.y + uv.y;
+
+		tz.x = z.x;
+		tz.y = z.y;
+
 		x2 = tz.x*tz.x;
 		y2 = tz.y*tz.y;
 		z.x = x2 - y2 + uv.x;
@@ -120,12 +152,13 @@ void main() {
 
 		if(x2 + y2 > 4.0) {
 			iteration = i;
+			break;
 		}
 	}
 
 	if (iteration == -1) {
 		gl_FragColor = vec4(colorInside, 1.0);
 	} else {
-		gl_FragColor = handleColors(iteration, maxIteration, x2 + y2);
+		gl_FragColor = handleColors(iteration*5, maxIteration*5, x2 + y2);
 	}
 }

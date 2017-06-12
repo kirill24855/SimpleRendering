@@ -1,6 +1,8 @@
 package pro.shpin.kirill.simplerendering.game;
 
 import static android.opengl.GLES20.*;
+import static javax.microedition.khronos.opengles.GL11ExtensionPack.GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME_OES;
+import static javax.microedition.khronos.opengles.GL11ExtensionPack.GL_RGBA8;
 
 import android.opengl.GLSurfaceView;
 import android.util.Log;
@@ -20,6 +22,8 @@ public class GLES20Renderer implements GLSurfaceView.Renderer{
 
 	public static float width;
 	public static float height;
+	public static int fbowidth;
+	public static int fboheight;
 	public static float aspectX;
 	public static float aspectY;
 
@@ -37,6 +41,10 @@ public class GLES20Renderer implements GLSurfaceView.Renderer{
 	private int fragShader;
 	private int shaderProgram;
 
+	private int bgvertShader;
+	private int bgfragShader;
+	private int bgshaderProgram;
+
 	private int aspectLoc;
 	private int transformLoc;
 	private int cLoc;
@@ -44,6 +52,15 @@ public class GLES20Renderer implements GLSurfaceView.Renderer{
 	private int colorSchemeLoc;
 	private int colorInsideLoc;
 	private int colorOutsideLoc;
+	private int scaleLoc;
+
+	private int texLoc;
+
+	private int fbo;
+	private int renderBuffer;
+	private int fboTex;
+
+	public static float SCALING = 1.5f;
 
 	private int loadShader(String source, int type) {
 		int shader;
@@ -86,7 +103,7 @@ public class GLES20Renderer implements GLSurfaceView.Renderer{
 				-1, -1
 		};
 
-		int[] indicies = {0, 1, 2, 2, 1, 3};
+		int[] indicies = {1, 0, 2, 2, 1, 3};
 
 		FloatBuffer buffer = ByteBuffer.allocateDirect(tri.length * 4).order(ByteOrder.nativeOrder()).asFloatBuffer();
 		buffer.put(tri);
@@ -133,16 +150,98 @@ public class GLES20Renderer implements GLSurfaceView.Renderer{
 		colorSchemeLoc = glGetUniformLocation(shaderProgram, "colorScheme");
 		colorInsideLoc = glGetUniformLocation(shaderProgram, "colorInside");
 		colorOutsideLoc = glGetUniformLocation(shaderProgram, "colorOutside");
+		scaleLoc = glGetUniformLocation(shaderProgram, "scale");
 
 		glUseProgram(shaderProgram);
 
-		glUniform2f(cLoc, -0.835f, 0.2321f);
-		glUniform1i(maxIterationLoc, 100);
+		glUniform2f(cLoc, 0, 0);
+		glUniform1i(maxIterationLoc, 50);
 		glUniform1i(colorSchemeLoc, 2);
 		glUniform3f(colorInsideLoc, 0, 0, 0);
-		glUniform3f(colorOutsideLoc, 1, 1, 1);
+		glUniform3f(colorOutsideLoc, 0, 1, 0);
+		glUniform1f(scaleLoc, SCALING);
 
 		glUseProgram(0);
+
+		bgvertShader = loadShader(Utils.readFromFile(R.raw.bg_vert), GL_VERTEX_SHADER);
+		bgfragShader = loadShader(Utils.readFromFile(R.raw.bg_frag), GL_FRAGMENT_SHADER);
+
+		bgshaderProgram  = glCreateProgram();
+
+		glAttachShader(bgshaderProgram, bgvertShader);
+		glAttachShader(bgshaderProgram, bgfragShader);
+
+		glBindAttribLocation(bgshaderProgram, 0, "position");
+
+		glLinkProgram(bgshaderProgram);
+
+		texLoc = glGetUniformLocation(bgshaderProgram, "tex");
+
+		glUseProgram(bgshaderProgram);
+
+		glUniform1i(texLoc, 0);
+
+		glUseProgram(0);
+	}
+
+	private void initFrameBuffer() {
+		int[] fboa = new int[1];
+		glGenFramebuffers(1, fboa, 0);
+		fbo = fboa[0];
+
+		glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+
+		int[] rba = new int[1];
+		glGenRenderbuffers(1, rba, 0);
+		renderBuffer = rba[0];
+
+		int wdt = fbowidth;
+		int hgt = fboheight;
+
+		glBindRenderbuffer(GL_RENDERBUFFER, renderBuffer);
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA8, wdt, hgt);
+
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, renderBuffer);
+
+		int[] texa = new int[1];
+		glGenTextures(1, texa, 0);
+		fboTex = texa[0];
+
+		glBindTexture(GL_TEXTURE_2D, fboTex);
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, wdt, hgt, 0, GL_RGBA, GL_UNSIGNED_BYTE, null);
+
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fboTex, 0);
+
+		int status = glCheckFramebufferStatus(GL_FRAMEBUFFER) ;
+		if(status != GL_FRAMEBUFFER_COMPLETE) {
+			String frameBufferError = "Unknown";
+
+			if(status == GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT) {
+				frameBufferError = "incomplete attachment";
+			} else if (status == GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS) {
+				frameBufferError = "incomplete dimentions";
+			} else if (status == GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT) {
+				frameBufferError = "incomplete missing attachment";
+			} else if (status == GL_FRAMEBUFFER_UNSUPPORTED) {
+				frameBufferError = "unsupported";
+			}
+
+			Log.e("FrameBuffer", "FrameBuffer error: " + frameBufferError);
+		}
+
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	}
+
+	public void initGL() {
+		glClearColor(0.2f, 0.3f, 0.8f, 1f);
+
+		initModel();
+		initShaders();
+		initFrameBuffer();
 	}
 
 	public GLES20Renderer() {
@@ -152,18 +251,9 @@ public class GLES20Renderer implements GLSurfaceView.Renderer{
 		height = -1;
 		lastTime = System.currentTimeMillis();
 		FPS = 0;
-		frames = 0;
 		vertShader = 0;
 		fragShader = 0;
 		shaderProgram = 0;
-	}
-
-	public void initGL() {
-		glClearColor(0.2f, 0.3f, 0.8f, 1f);
-
-		initModel();
-
-		initShaders();
 	}
 
 	@Override
@@ -171,8 +261,6 @@ public class GLES20Renderer implements GLSurfaceView.Renderer{
 		surfaceCreated = true;
 		width = -1;
 		height = -1;
-
-		initGL();
 	}
 
 	@Override
@@ -184,6 +272,9 @@ public class GLES20Renderer implements GLSurfaceView.Renderer{
 		width = w;
 		height = h;
 
+		fbowidth = (int)(width/SCALING);
+		fboheight = (int)(height/SCALING);
+
 		float aspect = height/width;
 
 		if(aspect >= 1) {
@@ -193,6 +284,8 @@ public class GLES20Renderer implements GLSurfaceView.Renderer{
 			aspectX = 1.0f/aspect;
 			aspectY = 1;
 		}
+
+		initGL();
 
 		surfaceCreated = false;
 	}
@@ -205,6 +298,7 @@ public class GLES20Renderer implements GLSurfaceView.Renderer{
 		long currentTime = System.currentTimeMillis();
 		if(currentTime - lastTime >= 1000) {
 			FPS = frames;
+			Log.d("FPS", "FPS: " + FPS);
 			frames = 0;
 			lastTime = currentTime;
 		}
@@ -223,6 +317,8 @@ public class GLES20Renderer implements GLSurfaceView.Renderer{
 		glEnableVertexAttribArray(0);
 		glVertexAttribPointer(0, 2, GL_FLOAT, false, 2 * 4, 0);
 
+		glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+
 		glUseProgram(shaderProgram);
 
 		glUniform2f(aspectLoc, aspectX, aspectY);
@@ -239,10 +335,14 @@ public class GLES20Renderer implements GLSurfaceView.Renderer{
 
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
-		int error;
-		while((error = glGetError()) != GL_NO_ERROR) {
-			Log.i("Info", "GLError: " + error);
-		}
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+		glUseProgram(bgshaderProgram);
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, fboTex);
+
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
 		glUseProgram(0);
 
@@ -250,5 +350,10 @@ public class GLES20Renderer implements GLSurfaceView.Renderer{
 
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+		int error;
+		while((error = glGetError()) != GL_NO_ERROR) {
+			Log.i("Info", "GLError: " + error);
+		}
 	}
 }
