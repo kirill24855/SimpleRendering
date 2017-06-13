@@ -44,13 +44,14 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 	private int bgshaderProgram;
 
 	private int aspectLoc;
-	private int transformLoc;
 	private int cLoc;
 	private int maxIterationLoc;
 	private int colorSchemeLoc;
 	private int colorInsideLoc;
 	private int colorOutsideLoc;
 	private int scaleLoc;
+	private int scLoc;
+	private int offLoc;
 
 	private int texLoc;
 
@@ -141,7 +142,6 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 		glLinkProgram(shaderProgram);
 
 		aspectLoc = glGetUniformLocation(shaderProgram, "aspect");
-		transformLoc = glGetUniformLocation(shaderProgram, "transform");
 
 		cLoc = glGetUniformLocation(shaderProgram, "c");
 		maxIterationLoc = glGetUniformLocation(shaderProgram, "maxIteration");
@@ -149,11 +149,13 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 		colorInsideLoc = glGetUniformLocation(shaderProgram, "colorInside");
 		colorOutsideLoc = glGetUniformLocation(shaderProgram, "colorOutside");
 		scaleLoc = glGetUniformLocation(shaderProgram, "scale");
+		scLoc = glGetUniformLocation(shaderProgram, "sc");
+		offLoc = glGetUniformLocation(shaderProgram, "off");
 
 		glUseProgram(shaderProgram);
 
 		glUniform2f(cLoc, 0, 0);
-		glUniform1i(maxIterationLoc, 50);
+		glUniform1i(maxIterationLoc, 25);
 		glUniform1i(colorSchemeLoc, 2);
 		glUniform3f(colorInsideLoc, 0, 0, 0);
 		glUniform3f(colorOutsideLoc, 0, 1, 0);
@@ -324,7 +326,8 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 		try {
 			GameView.semaphore.acquire();
 
-			glUniformMatrix3fv(transformLoc, 1, false, GameView.transform.getData(), 0);
+			glUniform1f(scLoc, GameView.totalScale);
+			glUniform2f(offLoc, GameView.offsetX, GameView.offsetY);
 
 			GameView.semaphore.release();
 		} catch (InterruptedException e) {
