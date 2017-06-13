@@ -13,8 +13,9 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Button;
 
-import pro.shpin.kirill.simplerendering.game.GLES20Renderer;
+import pro.shpin.kirill.simplerendering.game.GLESRenderer;
 import pro.shpin.kirill.simplerendering.game.GameView;
 import pro.shpin.kirill.simplerendering.game.Matrix3f;
 
@@ -44,11 +45,21 @@ public class GameActivity extends AppCompatActivity {
 			glView = new GameView(this);
 			glView.setEGLContextClientVersion(2);
 			glView.setPreserveEGLContextOnPause(true);
-			glView.setRenderer(new GLES20Renderer());
+			glView.setRenderer(new GLESRenderer());
 		} else {
 			return;
 		}
 
-		setContentView(glView);
+		setContentView(R.layout.activity_game_overlay);
+		ConstraintLayout layout = (ConstraintLayout) findViewById(R.id.activity_game_overlay);
+		layout.addView(glView, 0);
+
+		Button animateButton = (Button) findViewById(R.id.animateButton);
+		animateButton.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				GLESRenderer.animating = !GLESRenderer.animating;
+			}
+		});
 	}
 }
