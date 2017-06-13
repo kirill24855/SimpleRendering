@@ -22,16 +22,8 @@ public class GameView extends GLSurfaceView{
 	public static boolean originDown = false;
 	public static boolean canMove = true;
 
-	public static float pinX = 0;
-	public static float pinY = 0;
-	public static float pinDX = 0;
-	public static float pinDY = 0;
-	public static boolean pinDown = false;
-
-
 	public static float offX = 0;
 	public static float offY = 0;
-	public static float angle = 0;
 
 	public static Semaphore semaphore = new Semaphore(1);
 
@@ -44,14 +36,6 @@ public class GameView extends GLSurfaceView{
 	private class ScaleListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
 		@Override
 		public boolean onScale(ScaleGestureDetector detector) {
-
-			float cx = (((((detector.getFocusX()/ GLESRenderer.width) - 0.5f) * 2) * GLESRenderer.aspectX) + 1)/2.0f;
-			float cy = (((((detector.getFocusY()/ GLESRenderer.height) - 0.5f) * 2) * GLESRenderer.aspectY) + 1)/2.0f;
-			cy = 1-cy;
-
-			Vector3f temp = new Vector3f(cx, cy);
-			Vector3f tempT = new Vector3f(temp.x*totalScale + offsetX, temp.y*totalScale + offsetY);
-
 			float sc = 1.0f/detector.getScaleFactor();
 
 			try {
