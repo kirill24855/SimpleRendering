@@ -372,8 +372,17 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 		try {
 			GameView.semaphore.acquire();
 
-			glUniform1f(scLoc, GameView.totalScale);
-			glUniform2f(offLoc, GameView.offsetX, GameView.offsetY);
+			float scHigh = (float)GameView.totalScale;
+			float scLow = (float)(GameView.totalScale - (double)scHigh);
+
+			glUniform2f(scLoc, scHigh, scLow);
+
+			float offXHigh = (float)GameView.offsetX;
+			float offYHigh = (float)GameView.offsetY;
+			float offXLow = (float)(GameView.offsetX - (double)offXHigh);
+			float offYLow = (float)(GameView.offsetY - (double)offYHigh);
+
+			glUniform4f(offLoc, offXHigh, offYHigh, offXLow, offYLow);
 
 			GameView.semaphore.release();
 		} catch (InterruptedException e) {
