@@ -30,6 +30,8 @@ public class GLES20Renderer implements GLSurfaceView.Renderer{
 	private boolean firstDraw;
 	private boolean surfaceCreated;
 
+	public static boolean animating;
+
 	private long lastTime;
 	private int FPS;
 	private int frames;
@@ -247,6 +249,7 @@ public class GLES20Renderer implements GLSurfaceView.Renderer{
 	public GLES20Renderer() {
 		firstDraw = true;
 		surfaceCreated = false;
+		animating =false;
 		width = -1;
 		height = -1;
 		lastTime = System.currentTimeMillis();
@@ -332,6 +335,11 @@ public class GLES20Renderer implements GLSurfaceView.Renderer{
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
+
+		if (animating) {
+			double time = System.nanoTime() / 1E9D;
+			glUniform2f(cLoc, (float) Math.cos(time), (float) Math.sin(time));
+		} else glUniform2f(cLoc, 0f, 0f);
 
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
