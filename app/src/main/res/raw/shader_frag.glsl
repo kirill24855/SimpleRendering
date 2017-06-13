@@ -82,17 +82,6 @@ vec4 HSLtoRGB(float hue, float saturation, float luminosity) {
     return vec4(finalColor, 1.0);
 }
 
-vec4 handleColors(int curIteration, int maxIteration, float zAbsSquared) {
-    float stepValue = float(curIteration);
-
-    float colorFactor = stepValue / float(maxIteration);
-    if (colorFactor < 0.0) return vec4(colorInside, 1.0);
-
-    if (colorScheme == 2) return HSLtoRGB(stepValue*0.015, 1.0, colorFactor);
-    else if (colorScheme == 1) return HSVtoRGB(stepValue*0.015, 1.0, colorFactor/(colorFactor+0.1));
-    else return vec4(colorFactor*colorOutside, 1.0);
-}
-
 void main() {
 	//float blue = 0.0;
 
@@ -179,6 +168,15 @@ void main() {
 	if (iteration == -1) {
 		gl_FragColor = vec4(colorInside, 1.0);
 	} else {
-		gl_FragColor = handleColors(iteration, maxIteration*5, x2 + y2);
+		float stepValue = float(iteration);
+		float maxF = float(maxIteration*5);
+
+		if (colorScheme == 2) {
+			gl_FragColor =  HSLtoRGB(mod(stepValue*0.01, 1.0), 0.7, 0.7);
+		} else if (colorScheme == 1) {
+			gl_FragColor =  HSVtoRGB(stepValue*0.015, 1.0, 1.0);
+		} else {
+			gl_FragColor =  vec4((stepValue/maxF)*colorOutside, 1.0);
+		}
 	}
 }

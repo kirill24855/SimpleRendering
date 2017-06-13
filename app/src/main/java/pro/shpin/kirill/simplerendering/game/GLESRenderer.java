@@ -1,7 +1,6 @@
 package pro.shpin.kirill.simplerendering.game;
 
 import static android.opengl.GLES20.*;
-import static javax.microedition.khronos.opengles.GL11ExtensionPack.GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME_OES;
 import static javax.microedition.khronos.opengles.GL11ExtensionPack.GL_RGBA8;
 
 import android.opengl.GLSurfaceView;
@@ -15,10 +14,9 @@ import java.nio.IntBuffer;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
-import pro.shpin.kirill.simplerendering.GameActivity;
 import pro.shpin.kirill.simplerendering.R;
 
-public class GLES20Renderer implements GLSurfaceView.Renderer{
+public class GLESRenderer implements GLSurfaceView.Renderer{
 
 	public static float width;
 	public static float height;
@@ -244,7 +242,7 @@ public class GLES20Renderer implements GLSurfaceView.Renderer{
 		initFrameBuffer();
 	}
 
-	public GLES20Renderer() {
+	public GLESRenderer() {
 		firstDraw = true;
 		surfaceCreated = false;
 		width = -1;

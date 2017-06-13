@@ -2,7 +2,6 @@ package pro.shpin.kirill.simplerendering.game;
 
 import android.content.Context;
 import android.opengl.GLSurfaceView;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 
@@ -42,8 +41,8 @@ public class GameView extends GLSurfaceView{
 		@Override
 		public boolean onScale(ScaleGestureDetector detector) {
 
-			float cx = (((((detector.getFocusX()/GLES20Renderer.width) - 0.5f) * 2) * GLES20Renderer.aspectX) + 1)/2.0f;
-			float cy = (((((detector.getFocusY()/GLES20Renderer.height) - 0.5f) * 2) * GLES20Renderer.aspectY) + 1)/2.0f;
+			float cx = (((((detector.getFocusX()/ GLESRenderer.width) - 0.5f) * 2) * GLESRenderer.aspectX) + 1)/2.0f;
+			float cy = (((((detector.getFocusY()/ GLESRenderer.height) - 0.5f) * 2) * GLESRenderer.aspectY) + 1)/2.0f;
 			cy = 1-cy;
 
 			Vector3f temp = new Vector3f(cx, cy);
@@ -82,8 +81,8 @@ public class GameView extends GLSurfaceView{
 
 		int id = event.getPointerId(index);
 
-		origin.x = (((((event.getX(0)/GLES20Renderer.width) - 0.5f) * 2) * GLES20Renderer.aspectX) + 1)/2.0f;
-		origin.y = (((((event.getY(0)/GLES20Renderer.height) - 0.5f) * 2) * GLES20Renderer.aspectY) + 1)/2.0f;
+		origin.x = (((((event.getX(0)/ GLESRenderer.width) - 0.5f) * 2) * GLESRenderer.aspectX) + 1)/2.0f;
+		origin.y = (((((event.getY(0)/ GLESRenderer.height) - 0.5f) * 2) * GLESRenderer.aspectY) + 1)/2.0f;
 		origin.y = 1 - origin.y;
 
 		originT = transform.mult(origin);
@@ -156,8 +155,8 @@ public class GameView extends GLSurfaceView{
 			float dx = event.getX(0) - originDX;
 			float dy = event.getY(0) - originDY;
 
-			float tdx = (dx/GLES20Renderer.width) * GLES20Renderer.aspectX;
-			float tdy = (dy/GLES20Renderer.height) * GLES20Renderer.aspectY;
+			float tdx = (dx/ GLESRenderer.width) * GLESRenderer.aspectX;
+			float tdy = (dy/ GLESRenderer.height) * GLESRenderer.aspectY;
 
 			Vector3f temp = new Vector3f(-tdx, tdy);
 			temp.z = 0;
