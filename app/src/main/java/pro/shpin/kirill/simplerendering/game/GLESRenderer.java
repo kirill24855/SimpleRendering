@@ -162,7 +162,7 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 		glUseProgram(shaderProgram);
 
 		glUniform2f(cLoc, 0, 0);
-		glUniform1i(maxIterationLoc, 100);
+		glUniform1i(maxIterationLoc, 500);
 		glUniform1i(colorSchemeLoc, 2);
 		glUniform3f(colorInsideLoc, 0, 0, 0);
 		glUniform3f(colorOutsideLoc, 0, 1, 0);
