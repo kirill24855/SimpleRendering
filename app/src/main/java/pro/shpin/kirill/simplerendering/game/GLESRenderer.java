@@ -25,10 +25,11 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 	public static float aspectX;
 	public static float aspectY;
 
+	public static int renderMode = 1;
+	public static boolean updatedClearRender = false;
+
 	private boolean firstDraw;
 	private boolean surfaceCreated;
-
-	public static boolean animating;
 
 	private long lastTime;
 	private int FPS;
@@ -61,7 +62,11 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 	private int renderBuffer;
 	private int fboTex;
 
-	public static float SCALING = 1.5f;
+	private int fbof;
+	private int renderBufferf;
+	private int fboTexf;
+
+	public static float SCALING = 4.0f;
 
 	private int loadShader(String source, int type) {
 		int shader;
@@ -157,11 +162,10 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 		glUseProgram(shaderProgram);
 
 		glUniform2f(cLoc, 0, 0);
-		glUniform1i(maxIterationLoc, 25);
+		glUniform1i(maxIterationLoc, 100);
 		glUniform1i(colorSchemeLoc, 2);
 		glUniform3f(colorInsideLoc, 0, 0, 0);
 		glUniform3f(colorOutsideLoc, 0, 1, 0);
-		glUniform1f(scaleLoc, SCALING);
 
 		glUseProgram(0);
 
@@ -187,15 +191,23 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 	}
 
 	private void initFrameBuffer() {
-		int[] fboa = new int[1];
-		glGenFramebuffers(1, fboa, 0);
+		int[] fboa = new int[2];
+		glGenFramebuffers(2, fboa, 0);
 		fbo = fboa[0];
+		fbof = fboa[1];
 
-		glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-
-		int[] rba = new int[1];
-		glGenRenderbuffers(1, rba, 0);
+		int[] rba = new int[2];
+		glGenRenderbuffers(2, rba, 0);
 		renderBuffer = rba[0];
+		renderBufferf = rba[1];
+
+		int[] texa = new int[2];
+		glGenTextures(2, texa, 0);
+		fboTex = texa[0];
+		fboTexf = texa[1];
+
+		//Small FBO
+		glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 
 		int wdt = fbowidth;
 		int hgt = fboheight;
@@ -204,10 +216,6 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 		glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA8, wdt, hgt);
 
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, renderBuffer);
-
-		int[] texa = new int[1];
-		glGenTextures(1, texa, 0);
-		fboTex = texa[0];
 
 		glBindTexture(GL_TEXTURE_2D, fboTex);
 
@@ -219,6 +227,42 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fboTex, 0);
 
 		int status = glCheckFramebufferStatus(GL_FRAMEBUFFER) ;
+		if(status != GL_FRAMEBUFFER_COMPLETE) {
+			String frameBufferError = "Unknown";
+
+			if(status == GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT) {
+				frameBufferError = "incomplete attachment";
+			} else if (status == GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS) {
+				frameBufferError = "incomplete dimentions";
+			} else if (status == GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT) {
+				frameBufferError = "incomplete missing attachment";
+			} else if (status == GL_FRAMEBUFFER_UNSUPPORTED) {
+				frameBufferError = "unsupported";
+			}
+
+			Log.e("FrameBuffer", "FrameBuffer error: " + frameBufferError);
+		}
+
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+		//Large FBO
+		glBindFramebuffer(GL_FRAMEBUFFER, fbof);
+
+		glBindRenderbuffer(GL_RENDERBUFFER, renderBufferf);
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA8, (int)width, (int)height);
+
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, renderBufferf);
+
+		glBindTexture(GL_TEXTURE_2D, fboTexf);
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, (int)width, (int)height, 0, GL_RGBA, GL_UNSIGNED_BYTE, null);
+
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fboTexf, 0);
+
+		status = glCheckFramebufferStatus(GL_FRAMEBUFFER) ;
 		if(status != GL_FRAMEBUFFER_COMPLETE) {
 			String frameBufferError = "Unknown";
 
@@ -249,7 +293,6 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 	public GLESRenderer() {
 		firstDraw = true;
 		surfaceCreated = false;
-		animating =false;
 		width = -1;
 		height = -1;
 		lastTime = System.currentTimeMillis();
@@ -311,18 +354,18 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 		}
 	}
 
-	public void onDrawFrame(boolean firstDraw) {
-		glClear(GL_COLOR_BUFFER_BIT);
-
-		glBindBuffer(GL_ARRAY_BUFFER, vbo);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-
-		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(0, 2, GL_FLOAT, false, 2 * 4, 0);
-
-		glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-
+	public void renderFractal() {
 		glUseProgram(shaderProgram);
+
+		if(renderMode == 2) {
+			glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+
+			glUniform1f(scaleLoc, SCALING);
+		} else {
+			glBindFramebuffer(GL_FRAMEBUFFER, fbof);
+
+			glUniform1f(scaleLoc, 1.0f);
+		}
 
 		glUniform2f(aspectLoc, aspectX, aspectY);
 
@@ -337,19 +380,36 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 			e.printStackTrace();
 		}
 
-		if (animating) {
-			double time = System.nanoTime() / 1E9D;
-			glUniform2f(cLoc, (float) Math.cos(time), (float) Math.sin(time));
-		} else glUniform2f(cLoc, 0f, 0f);
-
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	}
+
+	public void onDrawFrame(boolean firstDraw) {
+		glClear(GL_COLOR_BUFFER_BIT);
+
+		glBindBuffer(GL_ARRAY_BUFFER, vbo);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(0, 2, GL_FLOAT, false, 2 * 4, 0);
+
+		if(renderMode != 0) {
+			renderFractal();
+		}
 
 		glUseProgram(bgshaderProgram);
 
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, fboTex);
+		if(renderMode == 2) {
+			glBindTexture(GL_TEXTURE_2D, fboTex);
+		} else {
+			if(!updatedClearRender) {
+				renderFractal();
+				updatedClearRender = true;
+			}
+			glBindTexture(GL_TEXTURE_2D, fboTexf);
+		}
 
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
@@ -359,6 +419,10 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+		if(renderMode == 1) {
+			renderMode = 0;
+		}
 
 		int error;
 		while((error = glGetError()) != GL_NO_ERROR) {

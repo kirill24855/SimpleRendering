@@ -58,7 +58,7 @@ public class GameActivity extends AppCompatActivity {
 		animateButton.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				GLESRenderer.animating = !GLESRenderer.animating;
+				//GLESRenderer.animating = !GLESRenderer.animating;
 			}
 		});
 	}
