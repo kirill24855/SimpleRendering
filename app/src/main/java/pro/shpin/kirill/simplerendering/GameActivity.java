@@ -13,11 +13,10 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.Button;
-import android.widget.FrameLayout;
 
 import pro.shpin.kirill.simplerendering.game.GLES20Renderer;
 import pro.shpin.kirill.simplerendering.game.GameView;
+import pro.shpin.kirill.simplerendering.game.Matrix3f;
 
 public class GameActivity extends AppCompatActivity {
 
@@ -50,16 +49,6 @@ public class GameActivity extends AppCompatActivity {
 			return;
 		}
 
-		setContentView(R.layout.activity_game_overlay);
-		ConstraintLayout layout = (ConstraintLayout) findViewById(R.id.activity_game_overlay);
-		layout.addView(glView, 0);
-
-		Button animateButton = (Button) findViewById(R.id.animateButton);
-		animateButton.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				GLES20Renderer.animating = !GLES20Renderer.animating;
-			}
-		});
+		setContentView(glView);
 	}
 }

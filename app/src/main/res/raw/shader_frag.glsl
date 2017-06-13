@@ -82,17 +82,6 @@ vec4 HSLtoRGB(float hue, float saturation, float luminosity) {
     return vec4(finalColor, 1.0);
 }
 
-vec4 handleColors(int curIteration, int maxIteration, float zAbsSquared) {
-    float stepValue = float(curIteration);
-
-    float colorFactor = stepValue / float(maxIteration);
-    if (colorFactor < 0.0) return vec4(colorInside, 1.0);
-
-    if (colorScheme == 2) return HSLtoRGB(stepValue*0.015, 1.0, colorFactor);
-    else if (colorScheme == 1) return HSVtoRGB(stepValue*0.015, 1.0, colorFactor/(colorFactor+0.1));
-    else return vec4(colorFactor*colorOutside, 1.0);
-}
-
 void main() {
 	//float blue = 0.0;
 
@@ -109,7 +98,7 @@ void main() {
 
 	int iteration = -1;
 
-	for (int i = 0; i < maxIteration*5; i += 5) {
+	for (int i = 0; i < maxIteration*10; i += 10) {
 		x2 = tz.x*tz.x;
         y2 = tz.y*tz.y;
 		z.x = x2 - y2 + uv.x;
@@ -174,11 +163,85 @@ void main() {
 			iteration = i+4;
 			break;
 		}
+
+		x2 = tz.x*tz.x;
+		y2 = tz.y*tz.y;
+		z.x = x2 - y2 + uv.x;
+		z.y = 2.0*tz.x*tz.y + uv.y;
+
+		tz.x = z.x;
+		tz.y = z.y;
+
+		if(x2 + y2 > 4.0) {
+			iteration = i+5;
+			break;
+		}
+
+		x2 = tz.x*tz.x;
+		y2 = tz.y*tz.y;
+		z.x = x2 - y2 + uv.x;
+		z.y = 2.0*tz.x*tz.y + uv.y;
+
+		tz.x = z.x;
+		tz.y = z.y;
+
+		if(x2 + y2 > 4.0) {
+			iteration = i+6;
+			break;
+		}
+
+		x2 = tz.x*tz.x;
+		y2 = tz.y*tz.y;
+		z.x = x2 - y2 + uv.x;
+		z.y = 2.0*tz.x*tz.y + uv.y;
+
+		tz.x = z.x;
+		tz.y = z.y;
+
+		if(x2 + y2 > 4.0) {
+			iteration = i+7;
+			break;
+		}
+
+		x2 = tz.x*tz.x;
+		y2 = tz.y*tz.y;
+		z.x = x2 - y2 + uv.x;
+		z.y = 2.0*tz.x*tz.y + uv.y;
+
+		tz.x = z.x;
+		tz.y = z.y;
+
+		if(x2 + y2 > 4.0) {
+			iteration = i+8;
+			break;
+		}
+
+		x2 = tz.x*tz.x;
+		y2 = tz.y*tz.y;
+		z.x = x2 - y2 + uv.x;
+		z.y = 2.0*tz.x*tz.y + uv.y;
+
+		tz.x = z.x;
+		tz.y = z.y;
+
+		if(x2 + y2 > 4.0) {
+			iteration = i+9;
+			break;
+		}
 	}
 
 	if (iteration == -1) {
 		gl_FragColor = vec4(colorInside, 1.0);
 	} else {
-		gl_FragColor = handleColors(iteration, maxIteration*5, x2 + y2);
+		float stepValue = float(iteration);
+		float maxF = float(maxIteration*10);
+
+		if (colorScheme == 2) {
+			gl_FragColor =  HSLtoRGB(mod(stepValue*0.01, 1.0), 0.7, 0.7);
+		} else if (colorScheme == 1) {
+			gl_FragColor =  HSVtoRGB(stepValue*0.015, 1.0, 1.0);
+		} else {
+			gl_FragColor =  vec4((stepValue/maxF)*colorOutside, 1.0);
+		}
 	}
 }

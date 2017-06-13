@@ -1,7 +1,6 @@
 package pro.shpin.kirill.simplerendering.game;
 
 import static android.opengl.GLES20.*;
-import static javax.microedition.khronos.opengles.GL11ExtensionPack.GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME_OES;
 import static javax.microedition.khronos.opengles.GL11ExtensionPack.GL_RGBA8;
 
 import android.opengl.GLSurfaceView;
@@ -15,10 +14,9 @@ import java.nio.IntBuffer;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
-import pro.shpin.kirill.simplerendering.GameActivity;
 import pro.shpin.kirill.simplerendering.R;
 
-public class GLES20Renderer implements GLSurfaceView.Renderer{
+public class GLESRenderer implements GLSurfaceView.Renderer{
 
 	public static float width;
 	public static float height;
@@ -48,13 +46,14 @@ public class GLES20Renderer implements GLSurfaceView.Renderer{
 	private int bgshaderProgram;
 
 	private int aspectLoc;
-	private int transformLoc;
 	private int cLoc;
 	private int maxIterationLoc;
 	private int colorSchemeLoc;
 	private int colorInsideLoc;
 	private int colorOutsideLoc;
 	private int scaleLoc;
+	private int scLoc;
+	private int offLoc;
 
 	private int texLoc;
 
@@ -145,7 +144,6 @@ public class GLES20Renderer implements GLSurfaceView.Renderer{
 		glLinkProgram(shaderProgram);
 
 		aspectLoc = glGetUniformLocation(shaderProgram, "aspect");
-		transformLoc = glGetUniformLocation(shaderProgram, "transform");
 
 		cLoc = glGetUniformLocation(shaderProgram, "c");
 		maxIterationLoc = glGetUniformLocation(shaderProgram, "maxIteration");
@@ -153,11 +151,13 @@ public class GLES20Renderer implements GLSurfaceView.Renderer{
 		colorInsideLoc = glGetUniformLocation(shaderProgram, "colorInside");
 		colorOutsideLoc = glGetUniformLocation(shaderProgram, "colorOutside");
 		scaleLoc = glGetUniformLocation(shaderProgram, "scale");
+		scLoc = glGetUniformLocation(shaderProgram, "sc");
+		offLoc = glGetUniformLocation(shaderProgram, "off");
 
 		glUseProgram(shaderProgram);
 
 		glUniform2f(cLoc, 0, 0);
-		glUniform1i(maxIterationLoc, 50);
+		glUniform1i(maxIterationLoc, 25);
 		glUniform1i(colorSchemeLoc, 2);
 		glUniform3f(colorInsideLoc, 0, 0, 0);
 		glUniform3f(colorOutsideLoc, 0, 1, 0);
@@ -246,7 +246,7 @@ public class GLES20Renderer implements GLSurfaceView.Renderer{
 		initFrameBuffer();
 	}
 
-	public GLES20Renderer() {
+	public GLESRenderer() {
 		firstDraw = true;
 		surfaceCreated = false;
 		animating =false;
@@ -329,7 +329,8 @@ public class GLES20Renderer implements GLSurfaceView.Renderer{
 		try {
 			GameView.semaphore.acquire();
 
-			glUniformMatrix3fv(transformLoc, 1, false, GameView.transform.getData(), 0);
+			glUniform1f(scLoc, GameView.totalScale);
+			glUniform2f(offLoc, GameView.offsetX, GameView.offsetY);
 
 			GameView.semaphore.release();
 		} catch (InterruptedException e) {
