@@ -5,19 +5,17 @@ import android.content.Context;
 import android.content.pm.ConfigurationInfo;
 import android.opengl.GLSurfaceView;
 import android.support.constraint.ConstraintLayout;
-import android.support.v4.view.MotionEventCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.SeekBar;
+import android.widget.TextView;
 
 import pro.shpin.kirill.simplerendering.game.GLESRenderer;
 import pro.shpin.kirill.simplerendering.game.GameView;
-import pro.shpin.kirill.simplerendering.game.Matrix3f;
 
 public class GameActivity extends AppCompatActivity {
 
@@ -54,11 +52,30 @@ public class GameActivity extends AppCompatActivity {
 		ConstraintLayout layout = (ConstraintLayout) findViewById(R.id.activity_game_overlay);
 		layout.addView(glView, 0);
 
-		Button animateButton = (Button) findViewById(R.id.animateButton);
-		animateButton.setOnClickListener(new View.OnClickListener() {
+		findViewById(R.id.changeColorsButton).setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				GLESRenderer.animating = !GLESRenderer.animating;
+				GLESRenderer.changeColorScheme();
+			}
+		});
+
+		final TextView iterationText = (TextView) findViewById(R.id.iterationsText);
+		((SeekBar) findViewById(R.id.iterationSlider)).setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+			@Override
+			public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+				int iterations = (int) Math.pow(10f, (float) progress/300f);
+				iterationText.setText(getApplicationContext().getString(R.string.iterationsText, iterations));
+				GLESRenderer.setIterations(iterations);
+			}
+
+			@Override
+			public void onStartTrackingTouch(SeekBar seekBar) {
+
+			}
+
+			@Override
+			public void onStopTrackingTouch(SeekBar seekBar) {
+
 			}
 		});
 	}

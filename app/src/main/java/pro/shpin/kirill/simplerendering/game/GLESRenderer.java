@@ -24,11 +24,12 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 	public static int fboheight;
 	public static float aspectX;
 	public static float aspectY;
-
 	private boolean firstDraw;
+
 	private boolean surfaceCreated;
 
-	public static boolean animating;
+	private static int colorScheme;
+	private static int maxIteration;
 
 	private long lastTime;
 	private int FPS;
@@ -157,8 +158,8 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 		glUseProgram(shaderProgram);
 
 		glUniform2f(cLoc, 0, 0);
-		glUniform1i(maxIterationLoc, 25);
-		glUniform1i(colorSchemeLoc, 2);
+		glUniform1i(maxIterationLoc, maxIteration);
+		glUniform1i(colorSchemeLoc, colorScheme);
 		glUniform3f(colorInsideLoc, 0, 0, 0);
 		glUniform3f(colorOutsideLoc, 0, 1, 0);
 		glUniform1f(scaleLoc, SCALING);
@@ -249,7 +250,8 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 	public GLESRenderer() {
 		firstDraw = true;
 		surfaceCreated = false;
-		animating =false;
+		colorScheme = 0;
+		maxIteration = 50;
 		width = -1;
 		height = -1;
 		lastTime = System.currentTimeMillis();
@@ -337,10 +339,8 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 			e.printStackTrace();
 		}
 
-		if (animating) {
-			double time = System.nanoTime() / 1E9D;
-			glUniform2f(cLoc, (float) Math.cos(time), (float) Math.sin(time));
-		} else glUniform2f(cLoc, 0f, 0f);
+		glUniform1i(colorSchemeLoc, colorScheme);
+		glUniform1i(maxIterationLoc, maxIteration);
 
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
@@ -364,5 +364,14 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 		while((error = glGetError()) != GL_NO_ERROR) {
 			Log.i("Info", "GLError: " + error);
 		}
+	}
+
+	public static void changeColorScheme() {
+		colorScheme++;
+		if (colorScheme == 4) colorScheme = 0;
+	}
+
+	public static void setIterations(int iterations) {
+		maxIteration = iterations;
 	}
 }

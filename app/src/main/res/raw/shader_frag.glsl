@@ -9,77 +9,77 @@ uniform vec3 colorInside;
 uniform vec3 colorOutside;
 
 float hue2rgb(float p, float q, float h) {
-    if (h < 0.0) h += 1.0;
-    if (h > 1.0 ) h -= 1.0;
-    if (6.0 * h < 1.0) return p + ((q - p) * 6.0 * h);
-    if (2.0 * h < 1.0 ) return  q;
-    if (3.0 * h < 2.0) return p + ((q - p) * 6.0 * ((2.0 / 3.0) - h));
-    return p;
+	if (h < 0.0) h += 1.0;
+	if (h > 1.0 ) h -= 1.0;
+	if (6.0 * h < 1.0) return p + ((q - p) * 6.0 * h);
+	if (2.0 * h < 1.0 ) return  q;
+	if (3.0 * h < 2.0) return p + ((q - p) * 6.0 * ((2.0 / 3.0) - h));
+	return p;
 }
 
 vec4 HSVtoRGB(float hue, float saturation, float brightness) {
-    float h = hue * 6.0;
-    float f = hue * 6.0 - h;
-    float p = brightness * (1.0 - saturation);
-    float q = brightness * (1.0 - f * saturation);
-    float t = brightness * (1.0 - (1.0 - f) * saturation);
+	float h = hue * 6.0;
+	float f = mod(hue * 6.0, 1.0);
+	float p = brightness * (1.0 - saturation);
+	float q = brightness * (1.0 - f * saturation);
+	float t = brightness * (1.0 - (1.0 - f) * saturation);
 
-    float value = brightness;
+	float value = brightness;
 
-    int comparator = int(mod(h, 6.0));
-    if (comparator == 0)
-    {
-        return vec4(value, t, p, 0.0);
-    }
-    else if (comparator == 1)
-    {
-        return vec4(q, value, p, 0.0);
-    }
-    else if (comparator == 2)
-    {
-        return vec4(p, value, t, 0.0);
-    }
-    else if (comparator == 3)
-    {
-        return vec4(p, q, value, 0.0);
-    }
-    else if (comparator == 4)
-    {
-        return vec4(t, p, value, 0.0);
-    }
-    else if (comparator == 5)
-    {
-        return vec4(value, p, q, 0.0);
-    }
-    else
-    {
-        return vec4(1.0, 0.0, 1.0, 0.0); //Error
-    }
+	int comparator = int(mod(h, 6.0));
+	if (comparator == 0)
+	{
+		return vec4(value, t, p, 0.0);
+	}
+	else if (comparator == 1)
+	{
+		return vec4(q, value, p, 0.0);
+	}
+	else if (comparator == 2)
+	{
+		return vec4(p, value, t, 0.0);
+	}
+	else if (comparator == 3)
+	{
+		return vec4(p, q, value, 0.0);
+	}
+	else if (comparator == 4)
+	{
+		return vec4(t, p, value, 0.0);
+	}
+	else if (comparator == 5)
+	{
+		return vec4(value, p, q, 0.0);
+	}
+	else
+	{
+		return vec4(1.0, 0.0, 1.0, 1.0); //Error
+	}
 }
 
 vec4 HSLtoRGB(float hue, float saturation, float luminosity) {
-    hue = mod(hue, 6.0);
+	hue = mod(hue, 6.0);
 
-    float q = 0.0;
+	float q = 0.0;
 
-    if (luminosity < 0.5)
-    {
-        q = luminosity * (1.0 + saturation);
-    }
-    else
-    {
-        q = (luminosity + saturation) - (saturation * luminosity);
-    }
+	if (luminosity < 0.5)
+	{
+		q = luminosity * (1.0 + saturation);
+	}
+	else
+	{
+		q = (luminosity + saturation) - (saturation * luminosity);
+	}
 
-    float p = 2.0 * luminosity - q;
+	float p = 2.0 * luminosity - q;
 
-    float rf = max(0.0, hue2rgb(p, q, hue + (1.0 / 3.0)));
-    float gf = max(0.0, hue2rgb(p, q, hue));
-    float bf = max(0.0, hue2rgb(p, q, hue - (1.0 / 3.0)));
+	float rf = max(0.0, hue2rgb(p, q, hue + (1.0 / 3.0)));
+	float gf = max(0.0, hue2rgb(p, q, hue));
+	float bf = max(0.0, hue2rgb(p, q, hue - (1.0 / 3.0)));
 
-    vec3 finalColor = vec3(min(rf, 1.0), min(gf, 1.0), min(bf, 1.0));
+	vec3 finalColor = vec3(min(rf, 1.0), min(gf, 1.0), min(bf, 1.0));
 
-    return vec4(finalColor, 1.0);
+	return vec4(finalColor, 1.0);
 }
 
 void main() {
@@ -98,9 +98,9 @@ void main() {
 
 	int iteration = -1;
 
-	for (int i = 0; i < maxIteration*10; i += 10) {
+	for (int i = 0; i < maxIteration; i++) {
 		x2 = tz.x*tz.x;
-        y2 = tz.y*tz.y;
+		y2 = tz.y*tz.y;
 		z.x = x2 - y2 + uv.x;
 		z.y = 2.0*tz.x*tz.y + uv.y;
 
@@ -112,31 +112,8 @@ void main() {
 			break;
 		}
 
-		x2 = tz.x*tz.x;
-        y2 = tz.y*tz.y;
-        z.x = x2 - y2 + uv.x;
-        z.y = 2.0*tz.x*tz.y + uv.y;
-
-        tz.x = z.x;
-        tz.y = z.y;
-
-		if(x2 + y2 > 4.0) {
-			iteration = i+1;
-			break;
-		}
-
-        x2 = tz.x*tz.x;
-		y2 = tz.y*tz.y;
-		z.x = x2 - y2 + uv.x;
-		z.y = 2.0*tz.x*tz.y + uv.y;
-
-		tz.x = z.x;
-		tz.y = z.y;
-
-		if(x2 + y2 > 4.0) {
-			iteration = i+2;
-			break;
-		}
+		i++;
+		if (i >= maxIteration) break;
 
 		x2 = tz.x*tz.x;
 		y2 = tz.y*tz.y;
@@ -147,9 +124,12 @@ void main() {
 		tz.y = z.y;
 
 		if(x2 + y2 > 4.0) {
-			iteration = i+3;
+			iteration = i;
 			break;
 		}
+
+		i++;
+		if (i >= maxIteration) break;
 
 		x2 = tz.x*tz.x;
 		y2 = tz.y*tz.y;
@@ -160,9 +140,12 @@ void main() {
 		tz.y = z.y;
 
 		if(x2 + y2 > 4.0) {
-			iteration = i+4;
+			iteration = i;
 			break;
 		}
+
+		i++;
+		if (i >= maxIteration) break;
 
 		x2 = tz.x*tz.x;
 		y2 = tz.y*tz.y;
@@ -173,9 +156,12 @@ void main() {
 		tz.y = z.y;
 
 		if(x2 + y2 > 4.0) {
-			iteration = i+5;
+			iteration = i;
 			break;
 		}
+
+		i++;
+		if (i >= maxIteration) break;
 
 		x2 = tz.x*tz.x;
 		y2 = tz.y*tz.y;
@@ -186,9 +172,12 @@ void main() {
 		tz.y = z.y;
 
 		if(x2 + y2 > 4.0) {
-			iteration = i+6;
+			iteration = i;
 			break;
 		}
+
+		i++;
+		if (i >= maxIteration) break;
 
 		x2 = tz.x*tz.x;
 		y2 = tz.y*tz.y;
@@ -199,9 +188,12 @@ void main() {
 		tz.y = z.y;
 
 		if(x2 + y2 > 4.0) {
-			iteration = i+7;
+			iteration = i;
 			break;
 		}
+
+		i++;
+		if (i >= maxIteration) break;
 
 		x2 = tz.x*tz.x;
 		y2 = tz.y*tz.y;
@@ -212,9 +204,12 @@ void main() {
 		tz.y = z.y;
 
 		if(x2 + y2 > 4.0) {
-			iteration = i+8;
+			iteration = i;
 			break;
 		}
+
+		i++;
+		if (i >= maxIteration) break;
 
 		x2 = tz.x*tz.x;
 		y2 = tz.y*tz.y;
@@ -225,7 +220,39 @@ void main() {
 		tz.y = z.y;
 
 		if(x2 + y2 > 4.0) {
-			iteration = i+9;
+			iteration = i;
+			break;
+		}
+
+		i++;
+		if (i >= maxIteration) break;
+
+		x2 = tz.x*tz.x;
+		y2 = tz.y*tz.y;
+		z.x = x2 - y2 + uv.x;
+		z.y = 2.0*tz.x*tz.y + uv.y;
+
+		tz.x = z.x;
+		tz.y = z.y;
+
+		if(x2 + y2 > 4.0) {
+			iteration = i;
+			break;
+		}
+
+		i++;
+		if (i >= maxIteration) break;
+
+		x2 = tz.x*tz.x;
+		y2 = tz.y*tz.y;
+		z.x = x2 - y2 + uv.x;
+		z.y = 2.0*tz.x*tz.y + uv.y;
+
+		tz.x = z.x;
+		tz.y = z.y;
+
+		if(x2 + y2 > 4.0) {
+			iteration = i;
 			break;
 		}
 	}
@@ -234,14 +261,22 @@ void main() {
 		gl_FragColor = vec4(colorInside, 1.0);
 	} else {
 		float stepValue = float(iteration);
-		float maxF = float(maxIteration*10);
+		float maxF = float(maxIteration);
 
-		if (colorScheme == 2) {
-			gl_FragColor =  HSLtoRGB(mod(stepValue*0.01, 1.0), 0.7, 0.7);
+		if (colorScheme == 3) {
+			float hue = 0.6;
+			float offset = 0.5;
+			float segment = mod(stepValue*0.08, 4.0);
+				 if (segment < 1.0) gl_FragColor = HSVtoRGB(hue, 1.0, segment);
+			else if (segment < 2.0) gl_FragColor = HSVtoRGB(hue, 2.0 - segment, 1.0);
+			else if (segment < 3.0) gl_FragColor = HSVtoRGB(hue + offset, segment - 2.0, 1.0);
+			else if (segment < 4.0) gl_FragColor = HSVtoRGB(hue + offset, 1.0, 4.0 - segment);
+		} else if (colorScheme == 2) {
+			gl_FragColor = HSLtoRGB(mod(stepValue*0.01, 1.0), 1.0, stepValue/(stepValue + 10.0));
 		} else if (colorScheme == 1) {
-			gl_FragColor =  HSVtoRGB(stepValue*0.015, 1.0, 1.0);
+			gl_FragColor = HSVtoRGB(stepValue*0.01, 1.0, stepValue/(stepValue + 10.0));
 		} else {
-			gl_FragColor =  vec4((stepValue/maxF)*colorOutside, 1.0);
+			gl_FragColor = vec4((stepValue/maxF)*colorOutside, 1.0);
 		}
 	}
 }
