@@ -7,15 +7,10 @@ in vec4 ptp;
 
 out vec4 outColor;
 
-layout(r32i, binding = 0) uniform iimage2D ziTex;
-layout(r32f, binding = 1) uniform image2D zxTex;
-layout(r32f, binding = 2) uniform image2D zyTex;
-layout(r32f, binding = 3) uniform image2D zzTex;
-layout(r32f, binding = 4) uniform image2D zwTex;
+layout(r32i, binding = 0) restrict writeonly uniform iimage2D ziTex;
 
 uniform vec2 c;
 uniform int maxIteration;
-uniform int run;
 
 //emulated double precision
 uniform vec2 sc;
@@ -75,16 +70,6 @@ vec2 ds_mul (vec2 dsa, vec2 dsb) {
 }
 
 void main() {
-	ivec2 currentPosition = ivec2(gl_FragCoord.xy);
-
-	if(run == 1) {
-		imageStore(zxTex, currentPosition, vec4(c.x));
-		imageStore(zyTex, currentPosition, vec4(c.y));
-		imageStore(zzTex, currentPosition, vec4(0.0));
-		imageStore(zwTex, currentPosition, vec4(0.0));
-		imageStore(ziTex, currentPosition, ivec4(-1));
-	}
-
 	vec2 tpx = ds_mul(vec2(ptp.x, ptp.z), sc);
 	vec2 tpy = ds_mul(vec2(ptp.y, ptp.w), sc);
 
@@ -101,14 +86,6 @@ void main() {
 
 	vec4 z = vec4(c.x, c.y, 0.0, 0.0);
 	int iteration = -1;
-
-	if(run == 2) {
-		z.x = imageLoad(zxTex, currentPosition).x;
-		z.y = imageLoad(zyTex, currentPosition).x;
-		z.z = imageLoad(zzTex, currentPosition).x;
-		z.w = imageLoad(zwTex, currentPosition).x;
-		iteration = imageLoad(ziTex, currentPosition).x;
-	}
 
 	vec4 tz = vec4(z.x, z.y, z.z, z.w);
     vec2 x2 = vec2(0.0);
@@ -235,12 +212,7 @@ void main() {
 		}
 	}
 
-	imageStore(zxTex, currentPosition, vec4(z.x));
-	imageStore(zyTex, currentPosition, vec4(z.y));
-	imageStore(zzTex, currentPosition, vec4(z.z));
-	imageStore(zwTex, currentPosition, vec4(z.w));
-
-	imageStore(ziTex, currentPosition, ivec4(iteration));
+	imageStore(ziTex, ivec2(gl_FragCoord.xy), ivec4(iteration));
 
 	discard;
 }

@@ -7,8 +7,9 @@ out vec4 outColor;
 uniform int colorScheme;
 uniform vec3 colorInside;
 uniform vec3 colorOutside;
+uniform float scale;
 
-layout(r32i, binding = 0) uniform iimage2D ziTex;
+layout(r32i, binding = 0) restrict readonly uniform iimage2D ziTex;
 
 float hue2rgb(float p, float q, float h) {
     if (h < 0.0) h += 1.0;
@@ -85,7 +86,11 @@ vec4 HSLtoRGB(float hue, float saturation, float luminosity) {
 }
 
 void main() {
-	int iteration = imageLoad(ziTex, ivec2(gl_FragCoord.xy)).x;
+	vec2 pixelCoord = vec2(gl_FragCoord.xy);
+
+	pixelCoord = pixelCoord / scale;
+
+	int iteration = imageLoad(ziTex, ivec2(pixelCoord.xy)).x;
 
 	if (iteration == -1) {
 		outColor = vec4(colorInside, 1.0);

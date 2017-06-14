@@ -51,23 +51,18 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 	private int aspectLoc;
 	private int cLoc;
 	private int maxIterationLoc;
-	private int colorSchemeLoc;
-	private int colorInsideLoc;
-	private int colorOutsideLoc;
 	private int scaleLoc;
 	private int scLoc;
 	private int offLoc;
-	private int runLoc;
-	private int texLoc;
 
+	private int colorSchemeLoc;
+	private int colorInsideLoc;
+	private int colorOutsideLoc;
+	private int frag_scaleLoc;
 
-	private int zxTex;
-	private int zyTex;
-	private int zzTex;
-	private int zwTex;
 	private int ziTex;
 
-	public static float SCALING = 4.0f;
+	public static float SCALING = 8.0f;
 
 	private int loadShader(String source, int type) {
 		int shader;
@@ -156,7 +151,6 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 		scaleLoc = glGetUniformLocation(shaderProgram, "scale");
 		scLoc = glGetUniformLocation(shaderProgram, "sc");
 		offLoc = glGetUniformLocation(shaderProgram, "off");
-		runLoc = glGetUniformLocation(shaderProgram, "run");
 
 		glUseProgram(shaderProgram);
 
@@ -184,7 +178,7 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 		colorSchemeLoc = glGetUniformLocation(fractalshaderProgram, "colorScheme");
 		colorInsideLoc = glGetUniformLocation(fractalshaderProgram, "colorInside");
 		colorOutsideLoc = glGetUniformLocation(fractalshaderProgram, "colorOutside");
-		texLoc = glGetUniformLocation(fractalshaderProgram, "tex");
+		frag_scaleLoc = glGetUniformLocation(fractalshaderProgram, "scale");
 
 		glUseProgram(fractalshaderProgram);
 
@@ -196,32 +190,13 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 	}
 
 	private void initTextures() {
-		int[] texa = new int[5];
+		int[] texa = new int[1];
+		glGenTextures(1, texa, 0);
+		ziTex = texa[0];
 
-		glGenTextures(5, texa, 0);
-		zxTex = texa[0];
-		zyTex = texa[1];
-		zzTex = texa[2];
-		zwTex = texa[3];
-		ziTex = texa[4];
-
-		glBindTexture(GL_TEXTURE_2D, zxTex);
-		glTexStorage2D(GL_TEXTURE_2D, 1, GL_R32F, (int)width, (int)height);
-		glBindTexture(GL_TEXTURE_2D, zyTex);
-		glTexStorage2D(GL_TEXTURE_2D, 1, GL_R32F, (int)width, (int)height);
-		glBindTexture(GL_TEXTURE_2D, zzTex);
-		glTexStorage2D(GL_TEXTURE_2D, 1, GL_R32F, (int)width, (int)height);
-		glBindTexture(GL_TEXTURE_2D, zwTex);
-		glTexStorage2D(GL_TEXTURE_2D, 1, GL_R32F, (int)width, (int)height);
 		glBindTexture(GL_TEXTURE_2D, ziTex);
 		glTexStorage2D(GL_TEXTURE_2D, 1, GL_R32I, (int)width, (int)height);
 		glBindTexture(GL_TEXTURE_2D, 0);
-
-		glBindImageTexture(0, ziTex, 0, false, 0, GL_READ_WRITE, GL_R32I);
-		glBindImageTexture(1, zxTex, 0, false, 0, GL_READ_WRITE, GL_R32F);
-		glBindImageTexture(2, zyTex, 0, false, 0, GL_READ_WRITE, GL_R32F);
-		glBindImageTexture(3, zzTex, 0, false, 0, GL_READ_WRITE, GL_R32F);
-		glBindImageTexture(4, zwTex, 0, false, 0, GL_READ_WRITE, GL_R32F);
 	}
 
 	public void initGL() {
@@ -299,7 +274,6 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 	public void renderFractal(float sc) {
 		glUseProgram(shaderProgram);
 
-		glUniform1i(runLoc, 1);
 		glUniform1f(scaleLoc, sc);
 
 		glUniform2f(aspectLoc, aspectX, aspectY);
@@ -336,14 +310,23 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 		glEnableVertexAttribArray(0);
 		glVertexAttribPointer(0, 2, GL_FLOAT, false, 2 * 4, 0);
 
+		float sc = 1.0f;
+
+		glBindImageTexture(0, ziTex, 0, false, 0, GL_WRITE_ONLY, GL_R32I);
+
 		if(renderMode == 2) {
 			renderFractal(SCALING);
+			sc = SCALING;
 		} else if(renderMode == 1) {
 			renderFractal(1.0f);
 			renderMode = 0;
 		}
 
 		glUseProgram(fractalshaderProgram);
+
+		glUniform1f(frag_scaleLoc, sc);
+
+		glBindImageTexture(0, ziTex, 0, false, 0, GL_READ_ONLY, GL_R32I);
 
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
