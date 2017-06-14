@@ -1,6 +1,17 @@
-precision highp float;
+#version 310 es
 
-varying vec4 ptp;
+precision highp float;
+precision highp image2D;
+
+in vec4 ptp;
+
+out vec4 outColor;
+
+layout(r32f, binding = 0) uniform image2D zxTex;
+layout(r32f, binding = 1) uniform image2D zyTex;
+layout(r32f, binding = 2) uniform image2D zzTex;
+layout(r32f, binding = 3) uniform image2D zwTex;
+layout(r32i, binding = 4) uniform iimage2D ziTex;
 
 uniform vec2 c;
 uniform int maxIteration;
@@ -162,7 +173,7 @@ void main() {
 	int iteration = -1;
 
 	float c11, c21, c2, e, t1, t2;
-	float a1, a2, b1, b2, cona, conb, split = 8193.;
+	float a1, a2, b1, b2, cona, conb, split = 8193.0;
 
 	vec2 zx = vec2(0.0);
 	vec2 zy = vec2(0.0);
@@ -276,15 +287,6 @@ void main() {
 		tz.z = z.z;
 		tz.w = z.w;
 
-	/*
-		x2.x = tz.x*tz.x;
-		y2.x = tz.y*tz.y;
-		z.x = x2.x - y2.x + uv.x;
-		z.y = 2.0*tz.x*tz.y + uv.y;
-
-		tz.x = z.x;
-		tz.y = z.y;
-	*/
 		if(x2.x + y2.x > 4.0) {
 			iteration = i;
 			break;
@@ -292,17 +294,17 @@ void main() {
 	}
 
 	if (iteration == -1) {
-		gl_FragColor = vec4(colorInside, 1.0);
+		outColor = vec4(colorInside, 1.0);
 	} else {
 		float stepValue = float(iteration);
 		float maxF = float(maxIteration);
 
 		if (colorScheme == 2) {
-			gl_FragColor =  HSLtoRGB(mod(stepValue*0.01, 1.0), 0.7, 0.7);
+			outColor =  HSLtoRGB(mod(stepValue*0.01, 1.0), 0.7, 0.7);
 		} else if (colorScheme == 1) {
-			gl_FragColor =  HSVtoRGB(stepValue*0.015, 1.0, 1.0);
+			outColor =  HSVtoRGB(stepValue*0.015, 1.0, 1.0);
 		} else {
-			gl_FragColor =  vec4((stepValue/maxF)*colorOutside, 1.0);
+			outColor =  vec4((stepValue/maxF)*colorOutside, 1.0);
 		}
 	}
 }

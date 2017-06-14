@@ -1,6 +1,8 @@
-attribute vec2 position;
+#version 310 es
 
-varying vec4 ptp;
+in vec2 position;
+
+out vec4 ptp;
 
 uniform vec2 aspect;
 uniform float scale;

@@ -1,6 +1,8 @@
 package pro.shpin.kirill.simplerendering.game;
 
 import static android.opengl.GLES20.*;
+import static android.opengl.GLES30.*;
+import static android.opengl.GLES31.*;
 import static javax.microedition.khronos.opengles.GL11ExtensionPack.GL_RGBA8;
 
 import android.opengl.GLSurfaceView;
@@ -65,6 +67,12 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 	private int fbof;
 	private int renderBufferf;
 	private int fboTexf;
+
+	private int zxTex;
+	private int zyTex;
+	private int zzTex;
+	private int zwTex;
+	private int ziTex;
 
 	public static float SCALING = 4.0f;
 
@@ -219,8 +227,8 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 
 		glBindTexture(GL_TEXTURE_2D, fboTex);
 
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, wdt, hgt, 0, GL_RGBA, GL_UNSIGNED_BYTE, null);
 
@@ -280,6 +288,28 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 		}
 
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	}
+
+	private void initTextures() {
+		int[] texa = new int[5];
+
+		glGenTextures(5, texa, 0);
+		zxTex = texa[0];
+		zyTex = texa[1];
+		zzTex = texa[2];
+		zwTex = texa[3];
+		ziTex = texa[4];
+
+		glBindTexture(GL_TEXTURE_2D, zxTex);
+		glTexStorage2D(GL_TEXTURE_2D, 1, GL_R32F, (int)width, (int)height);
+		glBindTexture(GL_TEXTURE_2D, zyTex);
+		glTexStorage2D(GL_TEXTURE_2D, 1, GL_R32F, (int)width, (int)height);
+		glBindTexture(GL_TEXTURE_2D, zzTex);
+		glTexStorage2D(GL_TEXTURE_2D, 1, GL_R32F, (int)width, (int)height);
+		glBindTexture(GL_TEXTURE_2D, zwTex);
+		glTexStorage2D(GL_TEXTURE_2D, 1, GL_R32F, (int)width, (int)height);
+		glBindTexture(GL_TEXTURE_2D, ziTex);
+		glTexStorage2D(GL_TEXTURE_2D, 1, GL_R32I, (int)width, (int)height);
 	}
 
 	public void initGL() {
@@ -362,6 +392,13 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 
 			glUniform1f(scaleLoc, SCALING);
 		} else {
+
+			glBindImageTexture(0, zxTex, 0, false, 0, GL_READ_WRITE, GL_R32F);
+			glBindImageTexture(1, zyTex, 0, false, 0, GL_READ_WRITE, GL_R32F);
+			glBindImageTexture(2, zzTex, 0, false, 0, GL_READ_WRITE, GL_R32F);
+			glBindImageTexture(3, zwTex, 0, false, 0, GL_READ_WRITE, GL_R32F);
+			glBindImageTexture(4, ziTex, 0, false, 0, GL_READ_WRITE, GL_R32I);
+
 			glBindFramebuffer(GL_FRAMEBUFFER, fbof);
 
 			glUniform1f(scaleLoc, 1.0f);
