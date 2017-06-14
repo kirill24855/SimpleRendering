@@ -44,9 +44,9 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 	private int fragShader;
 	private int shaderProgram;
 
-	private int bgvertShader;
-	private int bgfragShader;
-	private int bgshaderProgram;
+	private int fractalvertShader;
+	private int fractalfragShader;
+	private int fractalshaderProgram;
 
 	private int aspectLoc;
 	private int cLoc;
@@ -57,16 +57,9 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 	private int scaleLoc;
 	private int scLoc;
 	private int offLoc;
-
+	private int runLoc;
 	private int texLoc;
 
-	private int fbo;
-	private int renderBuffer;
-	private int fboTex;
-
-	private int fbof;
-	private int renderBufferf;
-	private int fboTexf;
 
 	private int zxTex;
 	private int zyTex;
@@ -160,12 +153,10 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 
 		cLoc = glGetUniformLocation(shaderProgram, "c");
 		maxIterationLoc = glGetUniformLocation(shaderProgram, "maxIteration");
-		colorSchemeLoc = glGetUniformLocation(shaderProgram, "colorScheme");
-		colorInsideLoc = glGetUniformLocation(shaderProgram, "colorInside");
-		colorOutsideLoc = glGetUniformLocation(shaderProgram, "colorOutside");
 		scaleLoc = glGetUniformLocation(shaderProgram, "scale");
 		scLoc = glGetUniformLocation(shaderProgram, "sc");
 		offLoc = glGetUniformLocation(shaderProgram, "off");
+		runLoc = glGetUniformLocation(shaderProgram, "run");
 
 		glUseProgram(shaderProgram);
 
@@ -177,117 +168,31 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 
 		glUseProgram(0);
 
-		bgvertShader = loadShader(Utils.readFromFile(R.raw.bg_vert), GL_VERTEX_SHADER);
-		bgfragShader = loadShader(Utils.readFromFile(R.raw.bg_frag), GL_FRAGMENT_SHADER);
+		fractalvertShader = loadShader(Utils.readFromFile(R.raw.fractal_vert), GL_VERTEX_SHADER);
+		fractalfragShader = loadShader(Utils.readFromFile(R.raw.fractal_frag), GL_FRAGMENT_SHADER);
 
-		bgshaderProgram  = glCreateProgram();
+		fractalshaderProgram  = glCreateProgram();
 
-		glAttachShader(bgshaderProgram, bgvertShader);
-		glAttachShader(bgshaderProgram, bgfragShader);
+		glAttachShader(fractalshaderProgram, fractalvertShader);
+		glAttachShader(fractalshaderProgram, fractalfragShader);
 
-		glBindAttribLocation(bgshaderProgram, 0, "position");
+		glBindAttribLocation(fractalshaderProgram, 0, "position");
 
-		glLinkProgram(bgshaderProgram);
+		glLinkProgram(fractalshaderProgram);
 
-		texLoc = glGetUniformLocation(bgshaderProgram, "tex");
 
-		glUseProgram(bgshaderProgram);
+		colorSchemeLoc = glGetUniformLocation(fractalshaderProgram, "colorScheme");
+		colorInsideLoc = glGetUniformLocation(fractalshaderProgram, "colorInside");
+		colorOutsideLoc = glGetUniformLocation(fractalshaderProgram, "colorOutside");
+		texLoc = glGetUniformLocation(fractalshaderProgram, "tex");
 
-		glUniform1i(texLoc, 0);
+		glUseProgram(fractalshaderProgram);
+
+		glUniform1i(colorSchemeLoc, 2);
+		glUniform3f(colorInsideLoc, 0, 0, 0);
+		glUniform3f(colorOutsideLoc, 0, 1, 0);
 
 		glUseProgram(0);
-	}
-
-	private void initFrameBuffer() {
-		int[] fboa = new int[2];
-		glGenFramebuffers(2, fboa, 0);
-		fbo = fboa[0];
-		fbof = fboa[1];
-
-		int[] rba = new int[2];
-		glGenRenderbuffers(2, rba, 0);
-		renderBuffer = rba[0];
-		renderBufferf = rba[1];
-
-		int[] texa = new int[2];
-		glGenTextures(2, texa, 0);
-		fboTex = texa[0];
-		fboTexf = texa[1];
-
-		//Small FBO
-		glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-
-		int wdt = fbowidth;
-		int hgt = fboheight;
-
-		glBindRenderbuffer(GL_RENDERBUFFER, renderBuffer);
-		glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA8, wdt, hgt);
-
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, renderBuffer);
-
-		glBindTexture(GL_TEXTURE_2D, fboTex);
-
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, wdt, hgt, 0, GL_RGBA, GL_UNSIGNED_BYTE, null);
-
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fboTex, 0);
-
-		int status = glCheckFramebufferStatus(GL_FRAMEBUFFER) ;
-		if(status != GL_FRAMEBUFFER_COMPLETE) {
-			String frameBufferError = "Unknown";
-
-			if(status == GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT) {
-				frameBufferError = "incomplete attachment";
-			} else if (status == GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS) {
-				frameBufferError = "incomplete dimentions";
-			} else if (status == GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT) {
-				frameBufferError = "incomplete missing attachment";
-			} else if (status == GL_FRAMEBUFFER_UNSUPPORTED) {
-				frameBufferError = "unsupported";
-			}
-
-			Log.e("FrameBuffer", "FrameBuffer error: " + frameBufferError);
-		}
-
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-		//Large FBO
-		glBindFramebuffer(GL_FRAMEBUFFER, fbof);
-
-		glBindRenderbuffer(GL_RENDERBUFFER, renderBufferf);
-		glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA8, (int)width, (int)height);
-
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, renderBufferf);
-
-		glBindTexture(GL_TEXTURE_2D, fboTexf);
-
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, (int)width, (int)height, 0, GL_RGBA, GL_UNSIGNED_BYTE, null);
-
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fboTexf, 0);
-
-		status = glCheckFramebufferStatus(GL_FRAMEBUFFER) ;
-		if(status != GL_FRAMEBUFFER_COMPLETE) {
-			String frameBufferError = "Unknown";
-
-			if(status == GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT) {
-				frameBufferError = "incomplete attachment";
-			} else if (status == GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS) {
-				frameBufferError = "incomplete dimentions";
-			} else if (status == GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT) {
-				frameBufferError = "incomplete missing attachment";
-			} else if (status == GL_FRAMEBUFFER_UNSUPPORTED) {
-				frameBufferError = "unsupported";
-			}
-
-			Log.e("FrameBuffer", "FrameBuffer error: " + frameBufferError);
-		}
-
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
 
 	private void initTextures() {
@@ -310,6 +215,13 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 		glTexStorage2D(GL_TEXTURE_2D, 1, GL_R32F, (int)width, (int)height);
 		glBindTexture(GL_TEXTURE_2D, ziTex);
 		glTexStorage2D(GL_TEXTURE_2D, 1, GL_R32I, (int)width, (int)height);
+		glBindTexture(GL_TEXTURE_2D, 0);
+
+		glBindImageTexture(0, ziTex, 0, false, 0, GL_READ_WRITE, GL_R32I);
+		glBindImageTexture(1, zxTex, 0, false, 0, GL_READ_WRITE, GL_R32F);
+		glBindImageTexture(2, zyTex, 0, false, 0, GL_READ_WRITE, GL_R32F);
+		glBindImageTexture(3, zzTex, 0, false, 0, GL_READ_WRITE, GL_R32F);
+		glBindImageTexture(4, zwTex, 0, false, 0, GL_READ_WRITE, GL_R32F);
 	}
 
 	public void initGL() {
@@ -317,7 +229,7 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 
 		initModel();
 		initShaders();
-		initFrameBuffer();
+		initTextures();
 	}
 
 	public GLESRenderer() {
@@ -384,25 +296,11 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 		}
 	}
 
-	public void renderFractal() {
+	public void renderFractal(float sc) {
 		glUseProgram(shaderProgram);
 
-		if(renderMode == 2) {
-			glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-
-			glUniform1f(scaleLoc, SCALING);
-		} else {
-
-			glBindImageTexture(0, zxTex, 0, false, 0, GL_READ_WRITE, GL_R32F);
-			glBindImageTexture(1, zyTex, 0, false, 0, GL_READ_WRITE, GL_R32F);
-			glBindImageTexture(2, zzTex, 0, false, 0, GL_READ_WRITE, GL_R32F);
-			glBindImageTexture(3, zwTex, 0, false, 0, GL_READ_WRITE, GL_R32F);
-			glBindImageTexture(4, ziTex, 0, false, 0, GL_READ_WRITE, GL_R32I);
-
-			glBindFramebuffer(GL_FRAMEBUFFER, fbof);
-
-			glUniform1f(scaleLoc, 1.0f);
-		}
+		glUniform1i(runLoc, 1);
+		glUniform1f(scaleLoc, sc);
 
 		glUniform2f(aspectLoc, aspectX, aspectY);
 
@@ -427,8 +325,6 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 		}
 
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
 
 	public void onDrawFrame(boolean firstDraw) {
@@ -440,22 +336,14 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 		glEnableVertexAttribArray(0);
 		glVertexAttribPointer(0, 2, GL_FLOAT, false, 2 * 4, 0);
 
-		if(renderMode != 0) {
-			renderFractal();
-		}
-
-		glUseProgram(bgshaderProgram);
-
-		glActiveTexture(GL_TEXTURE0);
 		if(renderMode == 2) {
-			glBindTexture(GL_TEXTURE_2D, fboTex);
-		} else {
-			if(!updatedClearRender) {
-				renderFractal();
-				updatedClearRender = true;
-			}
-			glBindTexture(GL_TEXTURE_2D, fboTexf);
+			renderFractal(SCALING);
+		} else if(renderMode == 1) {
+			renderFractal(1.0f);
+			renderMode = 0;
 		}
+
+		glUseProgram(fractalshaderProgram);
 
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
@@ -465,10 +353,6 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-		if(renderMode == 1) {
-			renderMode = 0;
-		}
 
 		int error;
 		while((error = glGetError()) != GL_NO_ERROR) {
