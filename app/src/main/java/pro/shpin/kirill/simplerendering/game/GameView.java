@@ -14,40 +14,49 @@ import java.util.concurrent.Semaphore;
 
 public class GameView extends GLSurfaceView{
 
-	public static Vector3f origin = new Vector3f(0, 0);
-	public static Vector3f originT = new Vector3f(0, 0);
+	public static Vector3d origin = new Vector3d(0, 0);
+	public static Vector3d originT = new Vector3d(0, 0);
 
-	public static float originDX = 0;
-	public static float originDY = 0;
+	public static double originDX = 0;
+	public static double originDY = 0;
 	public static boolean originDown = false;
 	public static boolean canMove = true;
 
-	public static float offX = 0;
-	public static float offY = 0;
-
 	public static Semaphore semaphore = new Semaphore(1);
+	public static Matrix3d transform = new Matrix3d();
 
-	public static float totalScale = 1;
-	public static float offsetX = 0;
-	public static float offsetY = 0;
+	public static double totalScale = 1;
+	public static double offsetX = 0;
+	public static double offsetY = 0;
 
 	public ScaleGestureDetector scaleDetector;
 
 	private class ScaleListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
 		@Override
 		public boolean onScale(ScaleGestureDetector detector) {
-			float sc = 1.0f/detector.getScaleFactor();
+			double cx = (((((detector.getFocusX()/ GLESRenderer.width) - 0.5f) * 2) * GLESRenderer.aspectX) + 1)/2.0f;
+			double cy = (((((detector.getFocusY()/ GLESRenderer.height) - 0.5f) * 2) * GLESRenderer.aspectY) + 1)/2.0f;
+			cy = 1-cy;
+
+			Vector3d temp = new Vector3d(cx, cy);
+			Vector3d tempT = transform.mult(temp);
+
+			double sc = 1.0f/detector.getScaleFactor();
 
 			try {
 				semaphore.acquire();
 
-				totalScale *= sc;
+				transform.move(-tempT.x, -tempT.y);
+				transform.scale(sc);
+				transform.move(tempT.x, tempT.y);
 
 				semaphore.release();
 
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
+
+			Log.i("Scale", "Scale: " + totalScale);
 
 			return true;
 		}
@@ -65,15 +74,18 @@ public class GameView extends GLSurfaceView{
 
 		int action = event.getAction();
 
-		int id = event.getPointerId(index);
-
 		origin.x = (((((event.getX(0)/ GLESRenderer.width) - 0.5f) * 2) * GLESRenderer.aspectX) + 1)/2.0f;
 		origin.y = (((((event.getY(0)/ GLESRenderer.height) - 0.5f) * 2) * GLESRenderer.aspectY) + 1)/2.0f;
 		origin.y = 1 - origin.y;
 
-		originT = new Vector3f(origin.x*totalScale + offsetX, origin.y*totalScale + offsetY);
+		originT = transform.mult(origin);
 
 		scaleDetector.onTouchEvent(event);
+
+		totalScale = transform.get(0, 0);
+
+		offsetX = transform.get(0,2);
+		offsetY = transform.get(1,2);
 
 		if(event.getPointerCount() > 1) {
 			canMove = false;
@@ -85,28 +97,28 @@ public class GameView extends GLSurfaceView{
 			originDY = event.getY(0);
 
 			originDown = true;
+
+			GLESRenderer.renderMode = 2;
+			GLESRenderer.updatedClearRender = false;
 		} else if (action == MotionEvent.ACTION_UP) {
 			originDown = false;
 			canMove = true;
+			GLESRenderer.renderMode = 1;
 		} else if (action == MotionEvent.ACTION_MOVE && canMove) {
-			float dx = event.getX(0) - originDX;
-			float dy = event.getY(0) - originDY;
+			double dx = event.getX(0) - originDX;
+			double dy = event.getY(0) - originDY;
 
-			float tdx = (dx/ GLESRenderer.width) * GLESRenderer.aspectX;
-			float tdy = (dy/ GLESRenderer.height) * GLESRenderer.aspectY;
+			double tdx = (dx/ GLESRenderer.width) * GLESRenderer.aspectX;
+			double tdy = (dy/ GLESRenderer.height) * GLESRenderer.aspectY;
 
-			Vector3f temp = new Vector3f(-tdx, tdy);
+			Vector3d temp = new Vector3d(-tdx, tdy);
 			temp.z = 0;
-			Vector3f tempT = new Vector3f(temp.x*totalScale, temp.y*totalScale);
-
-			offX -= tdx;
-			offY += tdy;
+			Vector3d tempT = transform.mult(temp);
 
 			try {
 				semaphore.acquire();
 
-				offsetX += tempT.x;
-				offsetY += tempT.y;
+				transform.move(tempT.x, tempT.y);
 
 				semaphore.release();
 			} catch (InterruptedException e) {
@@ -116,6 +128,11 @@ public class GameView extends GLSurfaceView{
 			originDX = event.getX(0);
 			originDY = event.getY(0);
 		}
+
+		offsetX = transform.get(0,2);
+		offsetY = transform.get(1,2);
+
+		totalScale = transform.get(0, 0);
 
 		return true;
 	}

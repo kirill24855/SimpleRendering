@@ -1,11 +1,11 @@
 package pro.shpin.kirill.simplerendering.game;
 
-public class Matrix3f {
+public class Matrix3d {
 
-	private float[] data;
+	private double[] data;
 
-	public Matrix3f() {
-		data = new float[9];
+	public Matrix3d() {
+		data = new double[9];
 
 		for(int i = 0;i < 3;i++) {
 			for(int j = 0;j < 3;j++) {
@@ -18,27 +18,27 @@ public class Matrix3f {
 		}
 	}
 
-	public void move(float x, float y) {
-		Matrix3f temp = new Matrix3f();
+	public void move(double x, double y) {
+		Matrix3d temp = new Matrix3d();
 		temp.set(0, 2, x);
 		temp.set(1, 2, y);
 
 		data = mult(temp, this).getData();
 	}
 
-	public void rotate(float angle) {
-		Matrix3f temp = new Matrix3f();
+	public void rotate(double angle) {
+		Matrix3d temp = new Matrix3d();
 
-		temp.set(0, 0, (float)Math.cos(angle));
-		temp.set(0, 1, (float)-Math.sin(angle));
-		temp.set(1, 0, (float)Math.sin(angle));
-		temp.set(1, 1, (float)Math.cos(angle));
+		temp.set(0, 0,  Math.cos(angle));
+		temp.set(0, 1, -Math.sin(angle));
+		temp.set(1, 0,  Math.sin(angle));
+		temp.set(1, 1,  Math.cos(angle));
 
 		data = mult(temp, this).getData();
 	}
 
-	public void scale(float sc) {
-		Matrix3f temp = new Matrix3f();
+	public void scale(double sc) {
+		Matrix3d temp = new Matrix3d();
 
 		temp.set(0, 0, sc);
 		temp.set(1, 1, sc);
@@ -46,8 +46,8 @@ public class Matrix3f {
 		data = mult(temp, this).getData();
 	}
 
-	public Vector3f mult(Vector3f vert) {
-		Vector3f result = new Vector3f(0, 0);
+	public Vector3d mult(Vector3d vert) {
+		Vector3d result = new Vector3d(0, 0);
 
 		result.x = vert.x * get(0, 0) + vert.y * get(0, 1) + vert.z * get(0, 2);
 		result.y = vert.x * get(1, 0) + vert.y * get(1, 1) + vert.z * get(1, 2);
@@ -56,10 +56,10 @@ public class Matrix3f {
 		return result;
 	}
 
-	public static Matrix3f mult(Matrix3f m1, Matrix3f m2) {
-		Matrix3f result = new Matrix3f();
+	public static Matrix3d mult(Matrix3d m1, Matrix3d m2) {
+		Matrix3d result = new Matrix3d();
 
-		float acc = 0;
+		double acc = 0;
 
 		for(int c = 0; c < 3;c++) {
 			for(int r = 0; r < 3;r++) {
@@ -87,15 +87,15 @@ public class Matrix3f {
 		return result;
 	}
 
-	public float get(int c, int r) {
+	public double get(int c, int r) {
 		return data[r * 3 + c];
 	}
 
-	public void set(int c, int r, float number) {
+	public void set(int c, int r, double number) {
 		data[r * 3 + c] = number;
 	}
 
-	public float[] getData() {
+	public double[] getData() {
 		return data;
 	}
 }
