@@ -40,18 +40,21 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 	private int vbo;
 	private int ibo;
 
-	private int vertShader;
-	private int fragShader;
-	private int shaderProgram;
+	//private int vertShader;
+	//private int fragShader;
+	//private int shaderProgram;
 
 	private int fractalvertShader;
 	private int fractalfragShader;
 	private int fractalshaderProgram;
 
+	private int compShader;
+	private int compProgram;
+
 	private int aspectLoc;
 	private int cLoc;
 	private int maxIterationLoc;
-	private int scaleLoc;
+	private int sizeLoc;
 	private int scLoc;
 	private int offLoc;
 
@@ -132,6 +135,7 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 	}
 
 	private void initShaders() {
+		/*
 		vertShader = loadShader(Utils.readFromFile(R.raw.shader_vert), GL_VERTEX_SHADER);
 		fragShader = loadShader(Utils.readFromFile(R.raw.shader_frag), GL_FRAGMENT_SHADER);
 
@@ -144,13 +148,7 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 
 		glLinkProgram(shaderProgram);
 
-		aspectLoc = glGetUniformLocation(shaderProgram, "aspect");
 
-		cLoc = glGetUniformLocation(shaderProgram, "c");
-		maxIterationLoc = glGetUniformLocation(shaderProgram, "maxIteration");
-		scaleLoc = glGetUniformLocation(shaderProgram, "scale");
-		scLoc = glGetUniformLocation(shaderProgram, "sc");
-		offLoc = glGetUniformLocation(shaderProgram, "off");
 
 		glUseProgram(shaderProgram);
 
@@ -161,6 +159,7 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 		glUniform3f(colorOutsideLoc, 0, 1, 0);
 
 		glUseProgram(0);
+		*/
 
 		fractalvertShader = loadShader(Utils.readFromFile(R.raw.fractal_vert), GL_VERTEX_SHADER);
 		fractalfragShader = loadShader(Utils.readFromFile(R.raw.fractal_frag), GL_FRAGMENT_SHADER);
@@ -174,7 +173,6 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 
 		glLinkProgram(fractalshaderProgram);
 
-
 		colorSchemeLoc = glGetUniformLocation(fractalshaderProgram, "colorScheme");
 		colorInsideLoc = glGetUniformLocation(fractalshaderProgram, "colorInside");
 		colorOutsideLoc = glGetUniformLocation(fractalshaderProgram, "colorOutside");
@@ -185,6 +183,28 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 		glUniform1i(colorSchemeLoc, 2);
 		glUniform3f(colorInsideLoc, 0, 0, 0);
 		glUniform3f(colorOutsideLoc, 0, 1, 0);
+
+		glUseProgram(0);
+
+		compShader = loadShader(Utils.readFromFile(R.raw.fractal_comp), GL_COMPUTE_SHADER);
+
+		compProgram = glCreateProgram();
+
+		glAttachShader(compProgram, compShader);
+
+		glLinkProgram(compProgram);
+
+		aspectLoc = glGetUniformLocation(compProgram, "aspect");
+		cLoc = glGetUniformLocation(compProgram, "c");
+		maxIterationLoc = glGetUniformLocation(compProgram, "maxIteration");
+		sizeLoc = glGetUniformLocation(compProgram, "size");
+		scLoc = glGetUniformLocation(compProgram, "sc");
+		offLoc = glGetUniformLocation(compProgram, "off");
+
+		glUseProgram(compProgram);
+
+		glUniform2f(cLoc, 0, 0);
+		glUniform1i(maxIterationLoc, 100);
 
 		glUseProgram(0);
 	}
@@ -214,9 +234,9 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 		height = -1;
 		lastTime = System.currentTimeMillis();
 		FPS = 0;
-		vertShader = 0;
-		fragShader = 0;
-		shaderProgram = 0;
+		//vertShader = 0;
+		//fragShader = 0;
+		//shaderProgram = 0;
 	}
 
 	@Override
@@ -272,9 +292,9 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 	}
 
 	public void renderFractal(float sc) {
-		glUseProgram(shaderProgram);
+		glUseProgram(compProgram);
 
-		glUniform1f(scaleLoc, sc);
+		glUniform2f(sizeLoc, width/sc, height/sc);
 
 		glUniform2f(aspectLoc, aspectX, aspectY);
 
@@ -298,7 +318,9 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 			e.printStackTrace();
 		}
 
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		glDispatchCompute((int)(width/(sc*8)), (int)(height/(sc*8)), 1);
+
+		glUseProgram(0);
 	}
 
 	public void onDrawFrame(boolean firstDraw) {
