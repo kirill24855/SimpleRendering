@@ -194,9 +194,10 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 
 		glLinkProgram(compProgram);
 
-		aspectLoc = glGetUniformLocation(compProgram, "aspect");
 		cLoc = glGetUniformLocation(compProgram, "c");
 		maxIterationLoc = glGetUniformLocation(compProgram, "maxIteration");
+
+		aspectLoc = glGetUniformLocation(compProgram, "aspect");
 		sizeLoc = glGetUniformLocation(compProgram, "size");
 		scLoc = glGetUniformLocation(compProgram, "sc");
 		offLoc = glGetUniformLocation(compProgram, "off");

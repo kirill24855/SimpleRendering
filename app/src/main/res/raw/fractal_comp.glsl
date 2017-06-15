@@ -70,12 +70,9 @@ vec2 ds_mul (vec2 dsa, vec2 dsb) {
 void main() {
 	ivec2 storePos = ivec2(gl_GlobalInvocationID.xy);
 
-	imageStore(ziTex, storePos, ivec4(storePos.x + maxIteration));
-
-	/*
 	vec2 pos = vec2(storePos);
-	pos.x = (((((pos.x / size.x) + 1.0) / 2.0) * aspect.x) + 1.0) / 2.0;
-	pos.x = (((((pos.y / size.y) + 1.0) / 2.0) * aspect.y) + 1.0) / 2.0;
+	pos.x = ((((pos.x / size.x * 2.0) - 1.0) * aspect.x) + 1.0) / 2.0;
+	pos.y = ((((pos.y / size.y * 2.0) - 1.0) * aspect.y) + 1.0) / 2.0;
 
 	vec4 ptp = vec4(0.0);
 	ptp.x = pos.x;
@@ -83,6 +80,7 @@ void main() {
 	ptp.z = 0.0;
 	ptp.w = 0.0;
 
+	/*
 	vec2 tpx = ds_mul(vec2(ptp.x, ptp.z), sc);
 	vec2 tpy = ds_mul(vec2(ptp.y, ptp.w), sc);
 
@@ -224,8 +222,37 @@ void main() {
 			break;
 		}
 	}
+	*/
+
+	float tpx = (ptp.x * sc.x + off.x) * 4.0 - 2.0;
+	float tpy = (ptp.y * sc.x + off.y) * 4.0 - 2.0;
+
+	vec2 uv = vec2(tpx, tpy);
+
+	vec2 z = vec2(0.0, 0.0);
+	int iteration = -1;
+
+	vec2 tz = vec2(z.x, z.y);
+	float x2 = 0.0;
+	float y2 = 0.0;
+
+	float zx = 0.0;
+	float zy = 0.0;
+
+	for(int i = 0; i < 100; i++) {
+		x2 = tz.x*tz.x;
+		y2 = tz.y*tz.y;
+		z.x = x2 - y2 + uv.x;
+		z.y = 2.0*tz.x*tz.y + uv.y;
+
+		tz.x = z.x;
+		tz.y = z.y;
+
+		if(x2 + y2 > 4.0) {
+			iteration = i;
+			break;
+		}
+	}
 
 	imageStore(ziTex, storePos, ivec4(iteration));
-
-	*/
 }
