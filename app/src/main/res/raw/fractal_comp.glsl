@@ -1,12 +1,17 @@
 #version 310 es
 
-layout(r32i, binding = 0) restrict writeonly uniform iimage2D ziTex;
+layout(r32i, binding = 0) restrict uniform iimage2D ziTex;
+layout(r32f, binding = 1) restrict uniform image2D zxTex;
+layout(r32f, binding = 2) restrict uniform image2D zyTex;
+layout(r32f, binding = 3) restrict uniform image2D zzTex;
+layout(r32f, binding = 4) restrict uniform image2D zwTex;
 
 uniform vec2 aspect;
 uniform vec2 size;
 
 uniform vec2 c;
 uniform int maxIteration;
+uniform ivec3 renderMode;
 
 //emulated double precision
 uniform vec2 sc;
@@ -70,6 +75,14 @@ vec2 ds_mul (vec2 dsa, vec2 dsb) {
 void main() {
 	ivec2 storePos = ivec2(gl_GlobalInvocationID.xy);
 
+	if(renderMode.y == 1) {
+		imageStore(ziTex, storePos, ivec4(-1));
+		imageStore(zxTex, storePos, vec4(c.x));
+		imageStore(zyTex, storePos, vec4(c.y));
+		imageStore(zzTex, storePos, vec4(0.0));
+		imageStore(zwTex, storePos, vec4(0.0));
+	}
+
 	vec2 pos = vec2(storePos);
 	pos.x = ((((pos.x / size.x * 2.0) - 1.0) * aspect.x) + 1.0) / 2.0;
 	pos.y = ((((pos.y / size.y * 2.0) - 1.0) * aspect.y) + 1.0) / 2.0;
@@ -80,7 +93,6 @@ void main() {
 	ptp.z = 0.0;
 	ptp.w = 0.0;
 
-	/*
 	vec2 tpx = ds_mul(vec2(ptp.x, ptp.z), sc);
 	vec2 tpy = ds_mul(vec2(ptp.y, ptp.w), sc);
 
@@ -95,8 +107,12 @@ void main() {
 
 	vec4 uv = vec4(tpx.x, tpy.x, tpx.y, tpy.y);
 
-	vec4 z = vec4(0.0, 0.0, 0.0, 0.0);
-	int iteration = -1;
+	vec4 z = vec4(imageLoad(zxTex, storePos).x, imageLoad(zyTex, storePos).x, imageLoad(zzTex, storePos).x, imageLoad(zwTex, storePos).x);
+	int iteration = imageLoad(ziTex, storePos).x;
+
+	if(iteration != -1) {
+		return;
+	}
 
 	vec4 tz = vec4(z.x, z.y, z.z, z.w);
 	vec2 x2 = vec2(0.0);
@@ -108,7 +124,9 @@ void main() {
 	vec2 zx = vec2(0.0);
 	vec2 zy = vec2(0.0);
 
-	for (int i = 0; i < 100; i++) {
+	int itCount = maxIteration/renderMode.x;
+
+	for (int i = 0; i < itCount; i++) {
 		//x2 = tz.xz * tz.xz
 		cona = tz.x * split;
 		a1 = cona - (cona - tz.x);
@@ -219,40 +237,13 @@ void main() {
 
 		if(x2.x + y2.x > 4.0) {
 			iteration = i;
-			break;
-		}
-	}
-	*/
-
-	float tpx = (ptp.x * sc.x + off.x) * 4.0 - 2.0;
-	float tpy = (ptp.y * sc.x + off.y) * 4.0 - 2.0;
-
-	vec2 uv = vec2(tpx, tpy);
-
-	vec2 z = vec2(0.0, 0.0);
-	int iteration = -1;
-
-	vec2 tz = vec2(z.x, z.y);
-	float x2 = 0.0;
-	float y2 = 0.0;
-
-	float zx = 0.0;
-	float zy = 0.0;
-
-	for(int i = 0; i < 100; i++) {
-		x2 = tz.x*tz.x;
-		y2 = tz.y*tz.y;
-		z.x = x2 - y2 + uv.x;
-		z.y = 2.0*tz.x*tz.y + uv.y;
-
-		tz.x = z.x;
-		tz.y = z.y;
-
-		if(x2 + y2 > 4.0) {
-			iteration = i;
+			imageStore(ziTex, storePos, ivec4(iteration + renderMode.z * itCount));
 			break;
 		}
 	}
 
-	imageStore(ziTex, storePos, ivec4(iteration));
+	imageStore(zxTex, storePos, vec4(z.x));
+	imageStore(zyTex, storePos, vec4(z.y));
+	imageStore(zzTex, storePos, vec4(z.z));
+	imageStore(zwTex, storePos, vec4(z.w));
 }

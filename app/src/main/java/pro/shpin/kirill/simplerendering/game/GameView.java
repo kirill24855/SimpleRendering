@@ -98,12 +98,12 @@ public class GameView extends GLSurfaceView{
 
 			originDown = true;
 
-			GLESRenderer.renderMode = 2;
+			GLESRenderer.renderMode = -1;
 			GLESRenderer.updatedClearRender = false;
 		} else if (action == MotionEvent.ACTION_UP) {
 			originDown = false;
 			canMove = true;
-			GLESRenderer.renderMode = 1;
+			GLESRenderer.renderMode = 10;
 		} else if (action == MotionEvent.ACTION_MOVE && canMove) {
 			double dx = event.getX(0) - originDX;
 			double dy = event.getY(0) - originDY;

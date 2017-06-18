@@ -27,7 +27,7 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 	public static float aspectX;
 	public static float aspectY;
 
-	public static int renderMode = 1;
+	public static int renderMode = 10;
 	public static boolean updatedClearRender = false;
 
 	private boolean firstDraw;
@@ -35,7 +35,7 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 	private boolean surfaceCreated;
 
 	private static int colorScheme;
-	private static int maxIteration;
+	private static int maxIteration = 200;
 
 	private long lastTime;
 	private int FPS;
@@ -61,6 +61,7 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 	private int sizeLoc;
 	private int scLoc;
 	private int offLoc;
+	private int renderModeLoc;
 
 	private int colorSchemeLoc;
 	private int colorInsideLoc;
@@ -68,6 +69,10 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 	private int frag_scaleLoc;
 
 	private int ziTex;
+	private int zxTex;
+	private int zyTex;
+	private int zzTex;
+	private int zwTex;
 
 	public static float SCALING = 8.0f;
 
@@ -205,22 +210,34 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 		sizeLoc = glGetUniformLocation(compProgram, "size");
 		scLoc = glGetUniformLocation(compProgram, "sc");
 		offLoc = glGetUniformLocation(compProgram, "off");
+		renderModeLoc = glGetUniformLocation(compProgram, "renderMode");
 
 		glUseProgram(compProgram);
 
 		glUniform2f(cLoc, 0, 0);
-		glUniform1i(maxIterationLoc, 100);
 
 		glUseProgram(0);
 	}
 
 	private void initTextures() {
-		int[] texa = new int[1];
-		glGenTextures(1, texa, 0);
+		int[] texa = new int[5];
+		glGenTextures(5, texa, 0);
 		ziTex = texa[0];
+		zxTex = texa[1];
+		zyTex = texa[2];
+		zzTex = texa[3];
+		zwTex = texa[4];
 
 		glBindTexture(GL_TEXTURE_2D, ziTex);
 		glTexStorage2D(GL_TEXTURE_2D, 1, GL_R32I, (int)width, (int)height);
+		glBindTexture(GL_TEXTURE_2D, zxTex);
+		glTexStorage2D(GL_TEXTURE_2D, 1, GL_R32F, (int)width, (int)height);
+		glBindTexture(GL_TEXTURE_2D, zyTex);
+		glTexStorage2D(GL_TEXTURE_2D, 1, GL_R32F, (int)width, (int)height);
+		glBindTexture(GL_TEXTURE_2D, zzTex);
+		glTexStorage2D(GL_TEXTURE_2D, 1, GL_R32F, (int)width, (int)height);
+		glBindTexture(GL_TEXTURE_2D, zwTex);
+		glTexStorage2D(GL_TEXTURE_2D, 1, GL_R32F, (int)width, (int)height);
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}
 
@@ -236,7 +253,6 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 		firstDraw = true;
 		surfaceCreated = false;
 		colorScheme = 0;
-		maxIteration = 50;
 		width = -1;
 		height = -1;
 		lastTime = System.currentTimeMillis();
@@ -298,12 +314,14 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 		}
 	}
 
-	public void renderFractal(float sc) {
+	public void renderFractal(float sc, int div) {
 		glUseProgram(compProgram);
 
 		glUniform2f(sizeLoc, width/sc, height/sc);
 
 		glUniform2f(aspectLoc, aspectX, aspectY);
+
+		glUniform1i(maxIterationLoc, maxIteration);
 
 		try {
 			GameView.semaphore.acquire();
@@ -325,7 +343,13 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 			e.printStackTrace();
 		}
 
-		glDispatchCompute((int)(width/(sc*8)), (int)(height/(sc*8)), 1);
+		if(div != 1) {
+			glUniform3i(renderModeLoc, div, renderMode-9, renderMode-1);
+		} else {
+			glUniform3i(renderModeLoc, div, 1, 0);
+		}
+
+		glDispatchCompute((int)(width/(sc*8)) + 1, (int)(height/(sc*8)) + 1, 1);
 
 		glUseProgram(0);
 	}
@@ -341,14 +365,18 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 
 		float sc = 1.0f;
 
-		glBindImageTexture(0, ziTex, 0, false, 0, GL_WRITE_ONLY, GL_R32I);
+		glBindImageTexture(0, ziTex, 0, false, 0, GL_READ_WRITE, GL_R32I);
+		glBindImageTexture(1, zxTex, 0, false, 0, GL_READ_WRITE, GL_R32F);
+		glBindImageTexture(2, zyTex, 0, false, 0, GL_READ_WRITE, GL_R32F);
+		glBindImageTexture(3, zzTex, 0, false, 0, GL_READ_WRITE, GL_R32F);
+		glBindImageTexture(4, zwTex, 0, false, 0, GL_READ_WRITE, GL_R32F);
 
-		if(renderMode == 2) {
-			renderFractal(SCALING);
+		if(renderMode == -1) {
+			renderFractal(SCALING, 1);
 			sc = SCALING;
-		} else if(renderMode == 1) {
-			renderFractal(1.0f);
-			renderMode = 0;
+		} else if(renderMode > 0) {
+			renderFractal(1.0f, 10);
+			renderMode--;
 		}
 
 		glUseProgram(fractalshaderProgram);

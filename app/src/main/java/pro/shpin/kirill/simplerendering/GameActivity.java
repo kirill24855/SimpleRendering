@@ -63,19 +63,19 @@ public class GameActivity extends AppCompatActivity {
 		((SeekBar) findViewById(R.id.iterationSlider)).setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
 			@Override
 			public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-				int iterations = (int) Math.pow(10f, (float) progress/300f);
+				int iterations = 10 * (int)Math.floor(progress/10.0f);
 				iterationText.setText(getApplicationContext().getString(R.string.iterationsText, iterations));
 				GLESRenderer.setIterations(iterations);
 			}
 
 			@Override
 			public void onStartTrackingTouch(SeekBar seekBar) {
-
+				GLESRenderer.renderMode = 2;
 			}
 
 			@Override
 			public void onStopTrackingTouch(SeekBar seekBar) {
-
+				GLESRenderer.renderMode = 1;
 			}
 		});
 	}
