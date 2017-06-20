@@ -70,7 +70,7 @@ public class GameActivity extends AppCompatActivity {
 
 			@Override
 			public void onStartTrackingTouch(SeekBar seekBar) {
-				GLESRenderer.renderMode = 2;
+				GLESRenderer.renderMode = -1;
 			}
 
 			@Override

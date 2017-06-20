@@ -25,7 +25,7 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 	public static float aspectX;
 	public static float aspectY;
 
-	public static int renderMode = 1;
+	public static int renderMode = 64;
 	public static boolean updatedClearRender = false;
 
 	private boolean firstDraw;
@@ -59,6 +59,8 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 	private int colorSchemeLoc;
 	private int colorInsideLoc;
 	private int colorOutsideLoc;
+	private int transLoc;
+	private int windowLoc;
 
 	private int texLoc;
 
@@ -69,6 +71,10 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 	private int fbof;
 	private int renderBufferf;
 	private int fboTexf;
+
+	private int fbob;
+	private int renderBufferb;
+	private int fboTexb;
 
 	public static float SCALING = 8.0f;
 
@@ -161,6 +167,7 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 		scaleLoc = glGetUniformLocation(shaderProgram, "scale");
 		scLoc = glGetUniformLocation(shaderProgram, "sc");
 		offLoc = glGetUniformLocation(shaderProgram, "off");
+		windowLoc = glGetUniformLocation(shaderProgram, "window");
 
 		glUseProgram(shaderProgram);
 
@@ -185,6 +192,7 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 		glLinkProgram(fractalshaderProgram);
 
 		texLoc = glGetUniformLocation(fractalshaderProgram, "tex");
+		transLoc = glGetUniformLocation(fractalshaderProgram, "trans");
 
 		glUseProgram(fractalshaderProgram);
 
@@ -194,20 +202,23 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 	}
 
 	private void initFrameBuffer() {
-		int[] fboa = new int[2];
-		glGenFramebuffers(2, fboa, 0);
+		int[] fboa = new int[3];
+		glGenFramebuffers(3, fboa, 0);
 		fbo = fboa[0];
 		fbof = fboa[1];
+		fbob = fboa[2];
 
-		int[] rba = new int[2];
-		glGenRenderbuffers(2, rba, 0);
+		int[] rba = new int[3];
+		glGenRenderbuffers(3, rba, 0);
 		renderBuffer = rba[0];
 		renderBufferf = rba[1];
+		renderBufferb = rba[2];
 
-		int[] texa = new int[2];
-		glGenTextures(2, texa, 0);
+		int[] texa = new int[3];
+		glGenTextures(3, texa, 0);
 		fboTex = texa[0];
 		fboTexf = texa[1];
+		fboTexb = texa[2];
 
 		//Small FBO
 		glBindFramebuffer(GL_FRAMEBUFFER, fbo);
@@ -222,8 +233,8 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 
 		glBindTexture(GL_TEXTURE_2D, fboTex);
 
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, wdt, hgt, 0, GL_RGBA, GL_UNSIGNED_BYTE, null);
 
@@ -252,18 +263,54 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 		glBindFramebuffer(GL_FRAMEBUFFER, fbof);
 
 		glBindRenderbuffer(GL_RENDERBUFFER, renderBufferf);
-		glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA8, (int)width, (int)height);
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA8, wdt, hgt);
 
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, renderBufferf);
 
 		glBindTexture(GL_TEXTURE_2D, fboTexf);
 
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, wdt, hgt, 0, GL_RGBA, GL_UNSIGNED_BYTE, null);
+
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fboTexf, 0);
+
+		status = glCheckFramebufferStatus(GL_FRAMEBUFFER) ;
+		if(status != GL_FRAMEBUFFER_COMPLETE) {
+			String frameBufferError = "Unknown";
+
+			if(status == GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT) {
+				frameBufferError = "incomplete attachment";
+			} else if (status == GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS) {
+				frameBufferError = "incomplete dimentions";
+			} else if (status == GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT) {
+				frameBufferError = "incomplete missing attachment";
+			} else if (status == GL_FRAMEBUFFER_UNSUPPORTED) {
+				frameBufferError = "unsupported";
+			}
+
+			Log.e("FrameBuffer", "FrameBuffer error: " + frameBufferError);
+		}
+
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+		//Large FBO
+		glBindFramebuffer(GL_FRAMEBUFFER, fbob);
+
+		glBindRenderbuffer(GL_RENDERBUFFER, renderBufferb);
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA8, (int)width, (int)height);
+
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, renderBufferb);
+
+		glBindTexture(GL_TEXTURE_2D, fboTexb);
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, (int)width, (int)height, 0, GL_RGBA, GL_UNSIGNED_BYTE, null);
 
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fboTexf, 0);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fboTexb, 0);
 
 		status = glCheckFramebufferStatus(GL_FRAMEBUFFER) ;
 		if(status != GL_FRAMEBUFFER_COMPLETE) {
@@ -290,6 +337,7 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 
 		initModel();
 		initShaders();
+		initFrameBuffer();
 	}
 
 	public GLESRenderer() {
@@ -356,14 +404,14 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 		}
 	}
 
-	public void renderFractal(float sc, int div) {
-		glUseProgram(shaderProgram);
+	public void renderFractal(float sc, int bindFBO) {
+		glBindFramebuffer(GL_FRAMEBUFFER, bindFBO);
 
 		glUniform2f(aspectLoc, aspectX, aspectY);
 
 		glUniform1i(maxIterationLoc, maxIteration);
 
-		glUniform1f(scaleLoc, 1.0f);
+		glUniform1f(scaleLoc, sc);
 
 		try {
 			GameView.semaphore.acquire();
@@ -399,23 +447,72 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 		glEnableVertexAttribArray(0);
 		glVertexAttribPointer(0, 2, GL_FLOAT, false, 2 * 4, 0);
 
-		float sc = 1.0f;
+		if(renderMode == -1) {
+			glUseProgram(shaderProgram);
 
-		//if(renderMode == -1) {
-			renderFractal(SCALING, 1);
-		//	sc = SCALING;
-		//} else if(renderMode > 0) {
-		//	renderFractal(1.0f, 10);
-		//	renderMode--;
-		//}
+			glUniform2f(windowLoc, 0, 0);
 
+			renderFractal(SCALING, fbo);
 
+			glBindFramebuffer(GL_FRAMEBUFFER, fbob);
 
-		//glUseProgram(fractalshaderProgram);
+			glUseProgram(fractalshaderProgram);
 
-		//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+			glActiveTexture(GL_TEXTURE0);
 
-		//glUseProgram(0);
+			if(renderMode == -1) {
+				glBindTexture(GL_TEXTURE_2D, fboTex);
+			} else {
+				glBindTexture(GL_TEXTURE_2D, fboTexf);
+			}
+
+			glUniform3f(transLoc, 0, 0, 1);
+
+			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		} else if(renderMode > 0) {
+			glUseProgram(shaderProgram);
+
+			int posID = renderMode - 1;
+
+			int xPos = posID % 8;
+			int yPos = (posID - xPos) / 8;
+
+			glUniform2f(windowLoc, (xPos*2.0f)/8.0f, (yPos*2.0f)/8.0f);
+
+			renderFractal(1.0f, fbof);
+
+			glBindFramebuffer(GL_FRAMEBUFFER, fbob);
+
+			glUseProgram(fractalshaderProgram);
+
+			glActiveTexture(GL_TEXTURE0);
+
+			if (renderMode == -1) {
+				glBindTexture(GL_TEXTURE_2D, fboTex);
+			} else {
+				glBindTexture(GL_TEXTURE_2D, fboTexf);
+			}
+
+			glUniform3f(transLoc, (xPos*2.0f - 7.0f)/8.0f, (yPos*2.0f - 7.0f)/8.0f, 8);
+
+			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+			renderMode--;
+		}
+
+		glUseProgram(fractalshaderProgram);
+
+		glBindTexture(GL_TEXTURE_2D, fboTexb);
+
+		glUniform3f(transLoc, 0, 0, 1);
+
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+		glUseProgram(0);
 
 		glDisableVertexAttribArray(0);
 
