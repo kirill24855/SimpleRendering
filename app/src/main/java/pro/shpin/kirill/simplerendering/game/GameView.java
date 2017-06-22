@@ -99,7 +99,6 @@ public class GameView extends GLSurfaceView{
 			originDown = true;
 
 			GLESRenderer.renderMode = -1;
-			GLESRenderer.updatedClearRender = false;
 		} else if (action == MotionEvent.ACTION_UP) {
 			originDown = false;
 			canMove = true;

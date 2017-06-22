@@ -14,12 +14,15 @@ import android.widget.Button;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import javax.microedition.khronos.opengles.GL;
+
 import pro.shpin.kirill.simplerendering.game.GLESRenderer;
 import pro.shpin.kirill.simplerendering.game.GameView;
 
 public class GameActivity extends AppCompatActivity {
 
 	private GLSurfaceView glView;
+	private GLESRenderer renderer;
 
 	private boolean hasGLES20() {
 		ActivityManager am = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
@@ -43,7 +46,7 @@ public class GameActivity extends AppCompatActivity {
 			glView = new GameView(this);
 			glView.setEGLContextClientVersion(2);
 			glView.setPreserveEGLContextOnPause(true);
-			glView.setRenderer(new GLESRenderer());
+			glView.setRenderer(renderer = new GLESRenderer());
 		} else {
 			return;
 		}
@@ -55,7 +58,7 @@ public class GameActivity extends AppCompatActivity {
 		findViewById(R.id.changeColorsButton).setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				GLESRenderer.changeColorScheme();
+				renderer.changeColorScheme();
 			}
 		});
 
@@ -65,7 +68,7 @@ public class GameActivity extends AppCompatActivity {
 			public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
 				int iterations = 10 * (int)Math.floor(progress/10.0f);
 				iterationText.setText(getApplicationContext().getString(R.string.iterationsText, iterations));
-				GLESRenderer.setIterations(iterations);
+				renderer.setIterations(iterations);
 			}
 
 			@Override
@@ -75,7 +78,7 @@ public class GameActivity extends AppCompatActivity {
 
 			@Override
 			public void onStopTrackingTouch(SeekBar seekBar) {
-				GLESRenderer.renderMode = 1;
+				GLESRenderer.renderMode = GLESRenderer.RENDER_UPSCALE;
 			}
 		});
 	}
