@@ -10,6 +10,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
+import java.util.concurrent.Semaphore;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
@@ -29,7 +30,7 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 	public static final int RENDER_DOWNSCALE = -1;
 	public static final int RENDER_UPSCALE = 64;
 
-	public static int renderMode = RENDER_UPSCALE;
+	private int renderMode = RENDER_UPSCALE;
 
 	private boolean firstDraw;
 
@@ -78,6 +79,8 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 	private int fbob;
 	private int renderBufferb;
 	private int fboTexb;
+
+	private Semaphore semaphore = new Semaphore(1);
 
 	public static float SCALING = 8.0f;
 
@@ -452,6 +455,12 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 		glEnableVertexAttribArray(0);
 		glVertexAttribPointer(0, 2, GL_FLOAT, false, 2 * 4, 0);
 
+		try {
+			semaphore.acquire();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+
 		if(renderMode == -1) {
 			glUseProgram(shaderProgram);
 
@@ -509,6 +518,8 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 			renderMode--;
 		}
 
+		semaphore.release();
+
 		glUseProgram(fractalshaderProgram);
 
 		glBindTexture(GL_TEXTURE_2D, fboTexb);
@@ -534,6 +545,16 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 		colorScheme++;
 		if (colorScheme == 4) colorScheme = 0;
 		renderMode = RENDER_UPSCALE;
+	}
+
+	public void setRenderMode(int target) {
+		try {
+			semaphore.acquire();
+			renderMode = target;
+			semaphore.release();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 	}
 
 	public void setIterations(int iterations) {

@@ -22,7 +22,7 @@ import pro.shpin.kirill.simplerendering.game.GameView;
 public class GameActivity extends AppCompatActivity {
 
 	private GLSurfaceView glView;
-	private GLESRenderer renderer;
+	public static GLESRenderer renderer;
 
 	private boolean hasGLES20() {
 		ActivityManager am = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
@@ -73,12 +73,12 @@ public class GameActivity extends AppCompatActivity {
 
 			@Override
 			public void onStartTrackingTouch(SeekBar seekBar) {
-				GLESRenderer.renderMode = -1;
+				renderer.setRenderMode(GLESRenderer.RENDER_DOWNSCALE);
 			}
 
 			@Override
 			public void onStopTrackingTouch(SeekBar seekBar) {
-				GLESRenderer.renderMode = GLESRenderer.RENDER_UPSCALE;
+				renderer.setRenderMode(GLESRenderer.RENDER_UPSCALE);
 			}
 		});
 	}

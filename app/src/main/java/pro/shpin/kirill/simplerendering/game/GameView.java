@@ -8,6 +8,8 @@ import android.view.ScaleGestureDetector;
 
 import java.util.concurrent.Semaphore;
 
+import pro.shpin.kirill.simplerendering.GameActivity;
+
 /**
  * Created by wiish on 6/9/2017.
  */
@@ -98,11 +100,12 @@ public class GameView extends GLSurfaceView{
 
 			originDown = true;
 
-			GLESRenderer.renderMode = -1;
+
+			GameActivity.renderer.setRenderMode(GLESRenderer.RENDER_DOWNSCALE);
 		} else if (action == MotionEvent.ACTION_UP) {
 			originDown = false;
 			canMove = true;
-			GLESRenderer.renderMode = 64;
+			GameActivity.renderer.setRenderMode(GLESRenderer.RENDER_UPSCALE);
 		} else if (action == MotionEvent.ACTION_MOVE && canMove) {
 			double dx = event.getX(0) - originDX;
 			double dy = event.getY(0) - originDY;
