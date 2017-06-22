@@ -25,8 +25,11 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 	public static float aspectX;
 	public static float aspectY;
 
-	public static int renderMode = 64;
-	public static boolean updatedClearRender = false;
+	public static final int RENDER_BUFFER = 0;
+	public static final int RENDER_DOWNSCALE = -1;
+	public static final int RENDER_UPSCALE = 64;
+
+	public static int renderMode = RENDER_UPSCALE;
 
 	private boolean firstDraw;
 
@@ -413,6 +416,8 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 
 		glUniform1f(scaleLoc, sc);
 
+		glUniform1i(colorSchemeLoc, colorScheme);
+
 		try {
 			GameView.semaphore.acquire();
 
@@ -525,12 +530,13 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 		}
 	}
 
-	public static void changeColorScheme() {
+	public void changeColorScheme() {
 		colorScheme++;
-		if (colorScheme == 4) colorScheme = 0;
+		if (colorScheme == 3) colorScheme = 0;
+		renderMode = RENDER_UPSCALE;
 	}
 
-	public static void setIterations(int iterations) {
+	public void setIterations(int iterations) {
 		maxIteration = iterations;
 	}
 }

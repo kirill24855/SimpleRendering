@@ -23,7 +23,7 @@ float hue2rgb(float p, float q, float h) {
 
 vec4 HSVtoRGB(float hue, float saturation, float brightness) {
     float h = hue * 6.0;
-    float f = hue * 6.0 - h;
+    float f = mod(h, 1.0);
     float p = brightness * (1.0 - saturation);
     float q = brightness * (1.0 - f * saturation);
     float t = brightness * (1.0 - (1.0 - f) * saturation);
@@ -287,10 +287,18 @@ void main() {
 	} else {
 		float stepValue = float(iteration);
 
-		if (colorScheme == 2) {
-			gl_FragColor =  HSLtoRGB(mod(stepValue*0.01, 1.0), 0.7, 0.7);
+		if (colorScheme == 3) {
+			float hue = 0.6;
+			float offset = 0.5;
+			float segment = mod(stepValue*0.08, 2.0);
+			if (segment < 1.0) gl_FragColor = HSVtoRGB(hue, 1.0, segment);
+			else if (segment < 2.0) gl_FragColor = HSVtoRGB(hue + offset, 1.0, 2.0 - segment);
+		} else if (colorScheme == 2) {
+			gl_FragColor = HSLtoRGB(mod(stepValue*0.01, 1.0), 0.7, 0.7);
 		} else if (colorScheme == 1) {
-			gl_FragColor =  HSVtoRGB(stepValue*0.015, 1.0, 1.0);
+			gl_FragColor = HSVtoRGB(stepValue*0.015, 1.0, 1.0);
+		} else {
+
 		}
     }
 }
