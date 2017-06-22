@@ -291,14 +291,15 @@ void main() {
 			float hue = 0.6;
 			float offset = 0.5;
 			float segment = mod(stepValue*0.08, 2.0);
-			if (segment < 1.0) gl_FragColor = HSVtoRGB(hue, 1.0, segment);
-			else if (segment < 2.0) gl_FragColor = HSVtoRGB(hue + offset, 1.0, 2.0 - segment);
+			if (segment < 1.0) gl_FragColor = HSLtoRGB(hue, 1.0, segment);
+			else if (segment < 2.0) gl_FragColor = HSLtoRGB(hue + offset, 1.0, 2.0 - segment);
 		} else if (colorScheme == 2) {
 			gl_FragColor = HSLtoRGB(mod(stepValue*0.01, 1.0), 0.7, 0.7);
 		} else if (colorScheme == 1) {
 			gl_FragColor = HSVtoRGB(stepValue*0.015, 1.0, 1.0);
 		} else {
-
+			float colorFactor = stepValue / float(maxIteration);
+			gl_FragColor = vec4(colorOutside * colorFactor, 1.0);
 		}
     }
 }
