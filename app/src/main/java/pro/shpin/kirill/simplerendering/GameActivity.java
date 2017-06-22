@@ -66,7 +66,7 @@ public class GameActivity extends AppCompatActivity {
 		((SeekBar) findViewById(R.id.iterationSlider)).setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
 			@Override
 			public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-				int iterations = 10 * (int)Math.floor(progress/10.0f);
+				int iterations = (int) Math.pow(10f, (float) progress/300f);
 				iterationText.setText(getApplicationContext().getString(R.string.iterationsText, iterations));
 				renderer.setIterations(iterations);
 			}
