@@ -532,7 +532,7 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 
 	public void changeColorScheme() {
 		colorScheme++;
-		if (colorScheme == 3) colorScheme = 0;
+		if (colorScheme == 4) colorScheme = 0;
 		renderMode = RENDER_UPSCALE;
 	}
 
