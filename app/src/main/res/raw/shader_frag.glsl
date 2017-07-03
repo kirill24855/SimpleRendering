@@ -287,7 +287,25 @@ void main() {
 	} else {
 		float stepValue = float(iteration);
 
-		if (colorScheme == 3) {
+		if (colorScheme == 5) {
+			float hue = 0.0;
+			float segment = mod(stepValue*0.05, 4.0);
+			if (segment < 1.0) gl_FragColor = HSLtoRGB(0.0, 1.0, segment);
+			else if (segment < 2.0) gl_FragColor = HSLtoRGB(0.25, 1.0, 2.0 - segment);
+			else if (segment < 3.0) gl_FragColor = HSLtoRGB(0.5, 1.0, segment - 2.0);
+			else if (segment < 4.0) gl_FragColor = HSLtoRGB(0.75, 1.0, 4.0 - segment);
+		} else if (colorScheme == 4) {
+			float hue = 0.0;
+			float segment = mod(stepValue*0.05, 8.0);
+			if (segment < 1.0) gl_FragColor = HSVtoRGB(0.0, 1.0 - segment, 1.0);
+			else if (segment < 2.0) gl_FragColor = HSVtoRGB(0.25, segment - 1.0, 1.0);
+			else if (segment < 3.0) gl_FragColor = HSVtoRGB(0.25, 3.0 - segment, 1.0);
+			else if (segment < 4.0) gl_FragColor = HSVtoRGB(0.5, segment - 3.0, 1.0);
+			else if (segment < 5.0) gl_FragColor = HSVtoRGB(0.5, 5.0 - segment, 1.0);
+			else if (segment < 6.0) gl_FragColor = HSVtoRGB(0.75, segment - 5.0, 1.0);
+			else if (segment < 7.0) gl_FragColor = HSVtoRGB(0.75, 7.0 - segment, 1.0);
+			else if (segment < 8.0) gl_FragColor = HSVtoRGB(0.0, segment - 7.0, 1.0);
+		} else if (colorScheme == 3) {
 			float hue = 0.6;
 			float offset = 0.5;
 			float segment = mod(stepValue*0.08, 2.0);

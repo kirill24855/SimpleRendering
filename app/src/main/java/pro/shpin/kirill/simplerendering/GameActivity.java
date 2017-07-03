@@ -11,8 +11,10 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.ToggleButton;
 
 import javax.microedition.khronos.opengles.GL;
 
@@ -66,7 +68,8 @@ public class GameActivity extends AppCompatActivity {
 		((SeekBar) findViewById(R.id.iterationSlider)).setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
 			@Override
 			public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-				int iterations = (int) Math.pow(10f, (float) progress/300f);
+				int iterations = progress;
+				//int iterations = (int) Math.pow(2f, (float) progress/100f);
 				iterationText.setText(getApplicationContext().getString(R.string.iterationsText, iterations));
 				renderer.setIterations(iterations);
 			}
@@ -79,6 +82,13 @@ public class GameActivity extends AppCompatActivity {
 			@Override
 			public void onStopTrackingTouch(SeekBar seekBar) {
 				renderer.setRenderMode(GLESRenderer.RENDER_UPSCALE);
+			}
+		});
+
+		((ToggleButton) findViewById(R.id.doublePrecision)).setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+			@Override
+			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+				renderer.useDoublePrecision(isChecked);
 			}
 		});
 	}

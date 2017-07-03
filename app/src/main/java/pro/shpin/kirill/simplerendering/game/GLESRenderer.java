@@ -543,7 +543,7 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 
 	public void changeColorScheme() {
 		colorScheme++;
-		if (colorScheme == 4) colorScheme = 0;
+		if (colorScheme == 6) colorScheme = 0;
 		renderMode = RENDER_UPSCALE;
 	}
 
@@ -555,6 +555,10 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
+	}
+
+	public void useDoublePrecision(boolean useDouble) {
+
 	}
 
 	public void setIterations(int iterations) {
