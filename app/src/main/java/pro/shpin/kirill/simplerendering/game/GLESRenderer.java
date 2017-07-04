@@ -28,13 +28,14 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 
 	public static final int RENDER_BUFFER = 0;
 	public static final int RENDER_DOWNSCALE = -1;
-	public static final int RENDER_UPSCALE = 64;
+	public static final int RENDER_UPSCALE = 16;
 
 	private int renderMode = RENDER_UPSCALE;
 
 	private boolean firstDraw;
 
 	private boolean surfaceCreated;
+	private int DP = 0;
 
 	private static int colorScheme = 2;
 	private static int maxIteration = 200;
@@ -65,6 +66,7 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 	private int colorOutsideLoc;
 	private int transLoc;
 	private int windowLoc;
+	private int dpLoc;
 
 	private int texLoc;
 
@@ -174,6 +176,7 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 		scLoc = glGetUniformLocation(shaderProgram, "sc");
 		offLoc = glGetUniformLocation(shaderProgram, "off");
 		windowLoc = glGetUniformLocation(shaderProgram, "window");
+		dpLoc = glGetUniformLocation(shaderProgram, "dp");
 
 		glUseProgram(shaderProgram);
 
@@ -182,6 +185,7 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 		glUniform1i(colorSchemeLoc, colorScheme);
 		glUniform3f(colorInsideLoc, 0, 0, 0);
 		glUniform3f(colorOutsideLoc, 0, 1, 0);
+		glUniform1i(dpLoc, DP);
 
 		glUseProgram(0);
 
@@ -421,6 +425,8 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 
 		glUniform1i(colorSchemeLoc, colorScheme);
 
+		glUniform1i(dpLoc, DP);
+
 		try {
 			GameView.semaphore.acquire();
 
@@ -444,6 +450,30 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
 		glUseProgram(0);
+	}
+
+	public void renderFractalPart(int xPos, int yPos) {
+		glUseProgram(shaderProgram);
+
+		glUniform2f(windowLoc, (xPos*2.0f)/8.0f, (yPos*2.0f)/8.0f);
+
+		renderFractal(1.0f, fbof);
+
+		glBindFramebuffer(GL_FRAMEBUFFER, fbob);
+
+		glUseProgram(fractalshaderProgram);
+
+		glActiveTexture(GL_TEXTURE0);
+
+		if (renderMode == -1) {
+			glBindTexture(GL_TEXTURE_2D, fboTex);
+		} else {
+			glBindTexture(GL_TEXTURE_2D, fboTexf);
+		}
+
+		glUniform3f(transLoc, (xPos*2.0f - 7.0f)/8.0f, (yPos*2.0f - 7.0f)/8.0f, 8);
+
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 	}
 
 	public void onDrawFrame(boolean firstDraw) {
@@ -486,32 +516,15 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		} else if(renderMode > 0) {
-			glUseProgram(shaderProgram);
-
 			int posID = renderMode - 1;
 
-			int xPos = posID % 8;
-			int yPos = (posID - xPos) / 8;
+			int xPos = posID % 4;
+			int yPos = (posID - xPos) / 4;
 
-			glUniform2f(windowLoc, (xPos*2.0f)/8.0f, (yPos*2.0f)/8.0f);
-
-			renderFractal(1.0f, fbof);
-
-			glBindFramebuffer(GL_FRAMEBUFFER, fbob);
-
-			glUseProgram(fractalshaderProgram);
-
-			glActiveTexture(GL_TEXTURE0);
-
-			if (renderMode == -1) {
-				glBindTexture(GL_TEXTURE_2D, fboTex);
-			} else {
-				glBindTexture(GL_TEXTURE_2D, fboTexf);
-			}
-
-			glUniform3f(transLoc, (xPos*2.0f - 7.0f)/8.0f, (yPos*2.0f - 7.0f)/8.0f, 8);
-
-			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+			renderFractalPart(0 + xPos, 0 + yPos);
+			renderFractalPart(7 - xPos, 0 + yPos);
+			renderFractalPart(7 - xPos, 7 - yPos);
+			renderFractalPart(0 + xPos, 7 - yPos);
 
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -558,7 +571,8 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 	}
 
 	public void useDoublePrecision(boolean useDouble) {
-
+		DP = useDouble ? 1 : 0;
+		renderMode = RENDER_UPSCALE;
 	}
 
 	public void setIterations(int iterations) {

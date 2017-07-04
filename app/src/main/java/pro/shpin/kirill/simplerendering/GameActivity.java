@@ -85,7 +85,7 @@ public class GameActivity extends AppCompatActivity {
 			}
 		});
 
-		((ToggleButton) findViewById(R.id.doublePrecision)).setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+		((ToggleButton) findViewById(R.id.toggleButton)).setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
 			@Override
 			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
 				renderer.useDoublePrecision(isChecked);
