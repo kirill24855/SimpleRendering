@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">My Game</string>
+    <string name="app_name">Fast Fractal Generator</string>
     <string name="title_activity_main">MainActivity</string>
     <string name="title_activity_about">AboutActivity</string>
     <string name="banner_ad_unit_id">ca-app-pub-9547939337076978/6761213046</string>
