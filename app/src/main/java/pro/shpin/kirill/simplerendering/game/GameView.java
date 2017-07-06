@@ -136,6 +136,8 @@ public class GameView extends GLSurfaceView{
 
 		totalScale = transform.get(0, 0);
 
+		Log.i("Transformation", "X: " + offsetX + "\tY: " + offsetY + "\tS: " + totalScale);
+
 		return true;
 	}
 }
