@@ -34,16 +34,16 @@
             style="@android:style/Widget.DeviceDefault.Light.SeekBar"
             android:layout_width="match_parent"
             android:layout_height="20dp"
-            android:max="900"
-            android:progress="510"/>
+            android:max="1000"
+            android:progress="100"/>
 
         <TextView
             android:id="@+id/iterationsText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="0.18"
-            android:text="Iterations: 50"
-            tools:text="Iterations: 50"/>
+            android:text="Iterations: 100"
+            tools:text="Iterations: 100"/>
     </RadioGroup>
 
     <ToggleButton

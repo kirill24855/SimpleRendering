@@ -38,7 +38,7 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 	private int DP = 0;
 
 	private static int colorScheme = 2;
-	private static int maxIteration = 200;
+	private static int maxIteration = 100;
 
 	private long lastTime;
 	private int FPS;

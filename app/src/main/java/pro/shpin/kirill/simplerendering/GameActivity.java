@@ -69,7 +69,6 @@ public class GameActivity extends AppCompatActivity {
 			@Override
 			public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
 				int iterations = progress;
-				//int iterations = (int) Math.pow(2f, (float) progress/100f);
 				iterationText.setText(getApplicationContext().getString(R.string.iterationsText, iterations));
 				renderer.setIterations(iterations);
 			}
