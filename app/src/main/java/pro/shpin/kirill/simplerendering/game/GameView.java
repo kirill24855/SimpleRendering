@@ -72,8 +72,6 @@ public class GameView extends GLSurfaceView{
 
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
-		int index = event.getActionIndex();
-
 		int action = event.getAction();
 
 		origin.x = (((((event.getX(0)/ GLESRenderer.width) - 0.5f) * 2) * GLESRenderer.aspectX) + 1)/2.0f;
@@ -136,7 +134,7 @@ public class GameView extends GLSurfaceView{
 
 		totalScale = transform.get(0, 0);
 
-		Log.i("Transformation", "X: " + offsetX + "\tY: " + offsetY + "\tS: " + totalScale);
+		//Log.i("Transformation", "X: " + offsetX + "\tY: " + offsetY + "\tS: " + totalScale);
 
 		return true;
 	}

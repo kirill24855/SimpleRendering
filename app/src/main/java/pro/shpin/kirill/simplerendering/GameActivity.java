@@ -7,6 +7,7 @@ import android.opengl.GLSurfaceView;
 import android.support.constraint.ConstraintLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -23,7 +24,7 @@ import pro.shpin.kirill.simplerendering.game.GameView;
 
 public class GameActivity extends AppCompatActivity {
 
-	private GLSurfaceView glView;
+	public static GLSurfaceView glView;
 	public static GLESRenderer renderer;
 
 	private boolean hasGLES20() {
@@ -57,15 +58,20 @@ public class GameActivity extends AppCompatActivity {
 		ConstraintLayout layout = (ConstraintLayout) findViewById(R.id.activity_game_overlay);
 		layout.addView(glView, 0);
 
-		findViewById(R.id.changeColorsButton).setOnClickListener(new View.OnClickListener() {
-			@Override
+		final Button changeColorButton = (Button)findViewById(R.id.changeColorsButton);
+		final TextView iterationText = (TextView) findViewById(R.id.iterationsText);
+		final SeekBar iterationsSlider = (SeekBar) findViewById(R.id.iterationSlider);
+		final ToggleButton dpCheck = (ToggleButton) findViewById(R.id.toggleButton);
+		final TextView dpText = (TextView) findViewById(R.id.textView2);
+		final ToggleButton showButton = (ToggleButton) findViewById(R.id.toggleButton2);
+
+		changeColorButton.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
 				renderer.changeColorScheme();
 			}
 		});
 
-		final TextView iterationText = (TextView) findViewById(R.id.iterationsText);
-		((SeekBar) findViewById(R.id.iterationSlider)).setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+		iterationsSlider.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
 			@Override
 			public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
 				int iterations = progress;
@@ -84,18 +90,54 @@ public class GameActivity extends AppCompatActivity {
 			}
 		});
 
-		((ToggleButton) findViewById(R.id.toggleButton)).setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+		dpCheck.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
 			@Override
 			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
 				renderer.useDoublePrecision(isChecked);
 			}
 		});
-		
-		glView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+
+		showButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+			public void onCheckedChanged(CompoundButton compoundButton, boolean isChecked) {
+				if(isChecked) {
+					changeColorButton.setVisibility(View.INVISIBLE);
+					iterationText.setVisibility(View.INVISIBLE);
+					iterationsSlider.setVisibility(View.INVISIBLE);
+					dpCheck.setVisibility(View.INVISIBLE);
+					dpText.setVisibility(View.INVISIBLE);
+				} else {
+
+					changeColorButton.setVisibility(View.VISIBLE);
+					iterationText.setVisibility(View.VISIBLE);
+					iterationsSlider.setVisibility(View.VISIBLE);
+					dpCheck.setVisibility(View.VISIBLE);
+					dpText.setVisibility(View.VISIBLE);
+				}
+			}
+		});
+
+		showButton.setText("Hide UI");
+		showButton.setTextOff("Hide UI");
+		showButton.setTextOn("Show UI");
+
+		final int preferedVisibility = View.SYSTEM_UI_FLAG_LAYOUT_STABLE
 				| View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
 				| View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-				| View.SYSTEM_UI_FLAG_HIDE_NAVIGATION // hide nav bar
-				| View.SYSTEM_UI_FLAG_FULLSCREEN // hide status bar
-				| View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+				| View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+				| View.SYSTEM_UI_FLAG_FULLSCREEN
+				| View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
+
+		final View decorView = getWindow().getDecorView();
+		decorView.setOnSystemUiVisibilityChangeListener
+				(new View.OnSystemUiVisibilityChangeListener() {
+					@Override
+					public void onSystemUiVisibilityChange(int visibility) {
+						if((visibility & preferedVisibility) != preferedVisibility) {
+							decorView.setSystemUiVisibility(preferedVisibility);
+						}
+					}
+				});
+
+		decorView.setSystemUiVisibility(preferedVisibility);
 	}
 }
