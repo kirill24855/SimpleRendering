@@ -5,6 +5,7 @@ import static javax.microedition.khronos.opengles.GL11ExtensionPack.GL_RGBA8;
 
 import android.opengl.GLSurfaceView;
 import android.util.Log;
+import android.view.View;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -15,6 +16,7 @@ import java.util.concurrent.Semaphore;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
+import pro.shpin.kirill.simplerendering.GameActivity;
 import pro.shpin.kirill.simplerendering.R;
 
 public class GLESRenderer implements GLSurfaceView.Renderer{
