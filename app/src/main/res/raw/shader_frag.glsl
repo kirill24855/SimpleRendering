@@ -1,5 +1,7 @@
 precision highp float;
 
+#define PI 3.14159265359
+
 varying vec4 ptp;
 
 uniform vec2 c;
@@ -142,6 +144,10 @@ vec2 ds_mul (vec2 dsa, vec2 dsb) {
 
 void main() {
 	int iteration = -1;
+
+	float angle = 0.0;
+
+	float ratio = 0.0;
 
     if(dp != 0) {
         vec2 tpx = ds_mul(vec2(ptp.x, ptp.z), sc);
@@ -294,9 +300,19 @@ void main() {
         float x2 = 0.0;
         float y2 = 0.0;
 
+        float tempAngle = 0.0;
+
+        float cAbs = sqrt(uv.x*uv.x + uv.y*uv.y);
+        float zOldAbs = 0.0;
+        float zNewAbs = 0.0;
+
+        float min = 0.0;
+        float max = 0.0;
+
         for (int i = 0; i < maxIteration; i++) {
-            x2 = tz.x*tz.x;
-            y2 = tz.y*tz.y;
+			zOldAbs = zNewAbs;
+			min = abs(zOldAbs - cAbs);
+			max = zOldAbs + cAbs;
 
             z.x = x2 - y2 + uv.x;
             z.y = tz.x * tz.y * 2.0 + uv.y;
@@ -304,7 +320,19 @@ void main() {
             tz.x = z.x;
             tz.y = z.y;
 
-            if(x2 + y2 > 4.0) {
+            x2 = tz.x*tz.x;
+            y2 = tz.y*tz.y;
+
+			zNewAbs = sqrt(x2 + y2);
+			ratio += (zNewAbs - min) / (max - min);
+
+			/*tempAngle = atan(tz.y, tz.x);
+			if (tempAngle < 0.0) tempAngle += 2.0*PI;
+			angle += tempAngle;*/
+
+            if(zNewAbs > 2.0) {
+                angle = atan(uv.y, uv.x)/PI/2.0;
+                ratio = (zNewAbs - min) / (max - min);
                 iteration = i;
                 break;
             }
@@ -316,7 +344,11 @@ void main() {
 	} else {
 		float stepValue = float(iteration);
 
-		if (colorScheme == 5) {
+		if (colorScheme == 7) {
+			gl_FragColor = HSVtoRGB(ratio, ratio, ratio);
+		} else if (colorScheme == 6) {
+			gl_FragColor = HSVtoRGB(angle, 1.0, 1.0);
+		} else if (colorScheme == 5) {
 			float hue = 0.0;
 			float segment = mod(stepValue*0.05, 4.0);
 			if (segment < 1.0) gl_FragColor = HSLtoRGB(0.0, 1.0, segment);
@@ -341,7 +373,7 @@ void main() {
 			if (segment < 1.0) gl_FragColor = HSLtoRGB(hue, 1.0, segment);
 			else if (segment < 2.0) gl_FragColor = HSLtoRGB(hue + offset, 1.0, 2.0 - segment);
 		} else if (colorScheme == 2) {
-			gl_FragColor = HSLtoRGB(mod(stepValue*0.01, 1.0), 0.7, 0.7);
+			gl_FragColor = HSLtoRGB(stepValue*0.01, 0.7, 0.7);
 		} else if (colorScheme == 1) {
 			gl_FragColor = HSVtoRGB(stepValue*0.015, 1.0, 1.0);
 		} else {

@@ -10,13 +10,10 @@ import android.os.Bundle;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.ToggleButton;
-
-import javax.microedition.khronos.opengles.GL;
 
 import pro.shpin.kirill.simplerendering.game.GLESRenderer;
 import pro.shpin.kirill.simplerendering.game.GameView;
@@ -57,38 +54,59 @@ public class GameActivity extends AppCompatActivity {
 		ConstraintLayout layout = (ConstraintLayout) findViewById(R.id.activity_game_overlay);
 		layout.addView(glView, 0);
 
-		findViewById(R.id.changeColorsButton).setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				renderer.changeColorScheme();
-			}
-		});
+		{ // Setup overlay
+			// Toggle controls menu
+			final ConstraintLayout controlsMenu = (ConstraintLayout) findViewById(R.id.controlsContainer);
+			controlsMenu.setPadding(0, 0, 0, 0);
+			findViewById(R.id.toggleControls).setOnClickListener(new View.OnClickListener() {
+				@Override
+				public void onClick(View v) {
+					toggleView(controlsMenu);
+				}
+			});
 
-		final TextView iterationText = (TextView) findViewById(R.id.iterationsText);
-		((SeekBar) findViewById(R.id.iterationSlider)).setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-			@Override
-			public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-				int iterations = progress;
-				iterationText.setText(getApplicationContext().getString(R.string.iterationsText, iterations));
-				renderer.setIterations(iterations);
-			}
+			// Change color scheme button
+			findViewById(R.id.changeColorsButton).setOnClickListener(new View.OnClickListener() {
+				@Override
+				public void onClick(View v) {
+					renderer.changeColorScheme();
+				}
+			});
 
-			@Override
-			public void onStartTrackingTouch(SeekBar seekBar) {
-				renderer.setRenderMode(GLESRenderer.RENDER_DOWNSCALE);
-			}
+			// Change iterations
+			final TextView iterationText = (TextView) findViewById(R.id.iterationsText);
+			((SeekBar) findViewById(R.id.iterationSlider)).setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+				@Override
+				public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+					int iterations = progress;
+					iterationText.setText(getApplicationContext().getString(R.string.iterationsText, iterations));
+					renderer.setIterations(iterations);
+				}
 
-			@Override
-			public void onStopTrackingTouch(SeekBar seekBar) {
-				renderer.setRenderMode(GLESRenderer.RENDER_UPSCALE);
-			}
-		});
+				@Override
+				public void onStartTrackingTouch(SeekBar seekBar) {
+					renderer.setRenderMode(GLESRenderer.RENDER_DOWNSCALE);
+				}
 
-		((ToggleButton) findViewById(R.id.toggleButton)).setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-			@Override
-			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-				renderer.useDoublePrecision(isChecked);
-			}
-		});
+				@Override
+				public void onStopTrackingTouch(SeekBar seekBar) {
+					renderer.setRenderMode(GLESRenderer.RENDER_UPSCALE);
+				}
+			});
+
+			// Toggle double precision
+			final ToggleButton precisionToggle = (ToggleButton) findViewById(R.id.precisionToggle);
+			precisionToggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+				@Override
+				public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+					renderer.useDoublePrecision(isChecked);
+				}
+			});
+		}
+	}
+
+	public void toggleView(View view){
+		if(view.getVisibility()==View.INVISIBLE) view.setVisibility(View.VISIBLE);
+		else if(view.getVisibility()==View.VISIBLE) view.setVisibility(View.INVISIBLE);
 	}
 }

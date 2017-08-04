@@ -37,7 +37,7 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 	private boolean surfaceCreated;
 	private int DP = 0;
 
-	private static int colorScheme = 2;
+	private static int colorScheme = 0;
 	private static int maxIteration = 100;
 
 	private long lastTime;
@@ -556,7 +556,7 @@ public class GLESRenderer implements GLSurfaceView.Renderer{
 
 	public void changeColorScheme() {
 		colorScheme++;
-		if (colorScheme == 6) colorScheme = 0;
+		if (colorScheme == 8) colorScheme = 0;
 		renderMode = RENDER_UPSCALE;
 	}
 
